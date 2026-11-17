@@ -28,8 +28,8 @@ MarketMind is an end-to-end AI/ML pipeline that automatically processes company 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.10+
-- PostgreSQL 14+ (or use SQLite for development)
+- Python 3.14+ (tested on Python 3.14.8)
+- PostgreSQL 14+ (or built-in SQLite for zero-config development)
 - Git
 
 ### Setup
