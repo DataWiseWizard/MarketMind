@@ -1,98 +1,64 @@
-# ============================================================
-# MarketMind - Requirements (Python 3.14.8 compatible)
-# ============================================================
+# ===========================================
+# MarketMind - MVP Dependencies
+# ===========================================
 
-# ----------------------------------------------------------
-# Core / Data Processing
-# ----------------------------------------------------------
-pandas>=2.2.3,<3.0
-numpy>=2.1.0,<3.0
-python-dotenv>=1.1.0,<2.0
+# ---- Core ----
+python-dotenv==1.1.0
+pydantic==2.11.3
 
-# ----------------------------------------------------------
-# Database
-# ----------------------------------------------------------
-SQLAlchemy>=2.0.36,<3.0
-alembic>=1.14.0,<2.0
-psycopg2-binary>=2.9.10,<3.0       # PostgreSQL adapter
+# ---- Data Processing ----
+pandas==2.2.3
+numpy==2.2.6
 
-# ----------------------------------------------------------
-# NLP / ML Core
-# ----------------------------------------------------------
-transformers>=4.47.0,<5.0          # Hugging Face (FinBERT, etc.)
-torch>=2.6.0,<3.0                  # PyTorch (CUDA auto-detected on install)
-sentence-transformers>=3.4.0,<4.0  # Embeddings for RAG
-spacy>=3.8.0,<4.0                  # NLP pipeline
-scikit-learn>=1.6.0,<2.0
+# ---- Database ----
+sqlalchemy==2.0.41
+psycopg2-binary==2.9.10
+alembic==1.15.2
 
-# ----------------------------------------------------------
-# Financial Sentiment (FinBERT)
-# ----------------------------------------------------------
-# FinBERT model is loaded via transformers, no extra package needed.
-# Model: ProsusAI/finbert (downloaded on first use)
+# ---- NLP & ML ----
+transformers==4.52.4
+torch==2.7.1
+spacy==3.8.7
+sentence-transformers==4.1.0
 
-# ----------------------------------------------------------
-# Prediction Model
-# ----------------------------------------------------------
-lightgbm>=4.6.0,<5.0
-shap>=0.47.0,<1.0                  # Model explainability
+# ---- Financial Sentiment (FinBERT) ----
+# FinBERT is loaded via transformers: ProsusAI/finbert
 
-# ----------------------------------------------------------
-# LLM (Local via Ollama)
-# ----------------------------------------------------------
-ollama>=0.5.0,<1.0                 # Python client for Ollama
-langchain>=0.3.14,<1.0             # LLM orchestration
-langchain-community>=0.3.14,<1.0   # Community integrations (Ollama, Qdrant)
-langchain-ollama>=0.3.0,<1.0       # Ollama-specific LangChain integration
+# ---- Prediction ----
+scikit-learn==1.7.0
+lightgbm==4.6.0
+shap==0.47.2
 
-# ----------------------------------------------------------
-# RAG / Vector Store
-# ----------------------------------------------------------
-qdrant-client>=1.13.0,<2.0         # Vector database (local mode)
-langchain-qdrant>=0.2.0,<1.0       # LangChain-Qdrant bridge
+# ---- Market Data ----
+yfinance==0.2.62
 
-# ----------------------------------------------------------
-# Market Data
-# ----------------------------------------------------------
-yfinance>=0.2.50,<1.0
+# ---- API ----
+fastapi==0.115.12
+uvicorn==0.34.3
 
-# ----------------------------------------------------------
-# API Backend
-# ----------------------------------------------------------
-fastapi>=0.115.0,<1.0
-pydantic>=2.10.0,<3.0
-uvicorn[standard]>=0.34.0,<1.0
-httpx>=0.28.0,<1.0                 # Async HTTP client / API testing
+# ---- Dashboard ----
+streamlit==1.45.1
 
-# ----------------------------------------------------------
-# Dashboard
-# ----------------------------------------------------------
-streamlit>=1.42.0,<2.0
+# ---- Report Generation ----
+jinja2==3.1.6
+reportlab==4.4.0
 
-# ----------------------------------------------------------
-# Report Generation
-# ----------------------------------------------------------
-reportlab>=4.2.0,<5.0
-Jinja2>=3.1.5,<4.0
+# ---- Testing ----
+pytest==8.4.0
 
-# ----------------------------------------------------------
-# PDF Transcript Parsing
-# ----------------------------------------------------------
-pdfplumber>=0.11.0,<1.0            # Extract text from PDF transcripts
+# ---- Utilities ----
+loguru==0.7.3
+tqdm==4.67.1
+pdfminer.six==20260107
 
-# ----------------------------------------------------------
-# MLOps / Experiment Tracking
-# ----------------------------------------------------------
-mlflow>=2.19.0,<3.0
-
-# ----------------------------------------------------------
-# Testing
-# ----------------------------------------------------------
-pytest>=8.3.0,<9.0
-pytest-asyncio>=0.25.0,<1.0       # Async test support for FastAPI
-
-# ----------------------------------------------------------
-# Utilities
-# ----------------------------------------------------------
-tqdm>=4.67.0,<5.0                  # Progress bars
-loguru>=0.7.3,<1.0                 # Better logging
+# ===========================================
+# Post-MVP (uncomment when needed)
+# ===========================================
+# faster-whisper==1.1.1        # Audio transcription
+# whisperx==3.3.4              # Speaker diarization
+# pyannote.audio==3.3.2        # Speaker diarization
+# langchain==0.3.25            # RAG framework
+# chromadb==1.0.12             # Vector database
+# mlflow==2.22.0               # Experiment tracking
+# evidently==0.7.2             # Model monitoring
+# vectorbt==0.26.2             # Backtesting

@@ -1,128 +1,143 @@
-# MarketMind
+# 🧠 MarketMind
 
 **Automated Financial Earnings Call Analysis and Market Signal Generation Pipeline**
 
-> ⚠️ **Disclaimer:** This project is for educational and research purposes only. It is not financial advice. No real-money trading is involved.
+> ⚠️ **Disclaimer:** This project is for educational and research purposes only. It is not financial advice. Do not use for real-money trading.
 
-## Overview
+---
 
-MarketMind is an end-to-end AI/ML pipeline that automatically processes company earnings call transcripts, extracts financial insights, analyzes sentiment, detects evasive answers, compares statements with historical data, and generates market reaction signals.
+## 📖 What is MarketMind?
 
-## Features
+MarketMind is an end-to-end AI/ML pipeline that automatically processes company earnings calls, extracts financial insights, analyzes sentiment, detects evasive answers, compares current statements with past promises, generates market reaction signals, and produces easy-to-understand reports.
 
-- **PDF Transcript Ingestion** — Parse earnings call transcripts from PDF files
-- **Financial Metric Extraction** — Extract revenue, EPS, margins, guidance, capex using local LLM
-- **Sentiment Analysis** — FinBERT-powered financial sentiment scoring
-- **Evasion Detection** — Identify vague or evasive executive responses
-- **Historical Accountability (RAG)** — Compare current statements with past promises
-- **Market Reaction Prediction** — LightGBM model with SHAP explainability
-- **Report Generation** — Automated PDF reports per earnings call
-- **Dashboard** — Interactive Streamlit interface
+### What it does (in simple terms):
 
-## Tech Stack
+| Step | What Happens |
+|------|-------------|
+| 1. **Listening** | Reads the transcript or listens to the audio |
+| 2. **Identifying speakers** | Figures out who is speaking: CEO, CFO, analyst |
+| 3. **Finding numbers** | Extracts revenue, EPS, margins, guidance |
+| 4. **Understanding mood** | Checks if language is positive, negative, or neutral |
+| 5. **Detecting evasion** | Flags vague answers to direct questions |
+| 6. **Checking past promises** | Compares current vs. previous quarter statements |
+| 7. **Creating a signal** | Produces a research signal (positive/negative/neutral) |
+| 8. **Creating a report** | Writes a clean, readable report |
 
-| Category | Tools |
-|---|---|
-| Language | Python 3.14 |
-| Database | PostgreSQL 18 + SQLAlchemy + Alembic |
-| NLP/ML | PyTorch, Transformers (FinBERT), spaCy, scikit-learn |
-| LLM | Ollama (local — Mistral / Llama) |
-| RAG | LangChain + Qdrant |
-| API | FastAPI + Uvicorn |
-| Dashboard | Streamlit |
-| MLOps | MLflow |
-| Prediction | LightGBM + SHAP |
+---
 
-## Project Structure
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.14+ (tested on Python 3.14.8)
+- PostgreSQL 14+ (or built-in SQLite for zero-config development)
+- Git
+
+### Setup
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/DataWiseWizard/MarketMind.git
+cd MarketMind
+
+# 2. Create virtual environment
+python -m venv venv
+
+# 3. Activate it
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Set up environment variables
+copy .env.example .env
+# Edit .env with your database credentials
+
+# 6. Test database connection
+python test_db_connection.py
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 MarketMind/
 ├── data/
-│   ├── transcripts/          # Raw PDF transcripts (by year)
-│   ├── raw/                  # Other raw data (audio, filings, market data)
-│   ├── processed/            # Processed outputs
-│   └── external/             # External datasets
+│   ├── raw/                    # Raw input data
+│   │   ├── audio/              # Earnings call audio files
+│   │   ├── transcripts/        # Earnings call transcripts
+│   │   ├── filings/            # SEC filings
+│   │   └── market_data/        # Stock price data
+│   ├── processed/              # Processed outputs
+│   │   ├── transcripts/        # Cleaned & segmented transcripts
+│   │   ├── features/           # ML feature tables
+│   │   └── embeddings/         # Vector embeddings
+│   └── external/               # Third-party datasets
 ├── src/
-│   ├── ingestion/            # Data loading and PDF parsing
-│   ├── processing/           # Transcript segmentation, sentiment, evasion
-│   ├── rag/                  # Historical accountability (vector DB)
-│   ├── features/             # Feature engineering, metric extraction
-│   ├── models/               # ML model training and prediction
-│   ├── backtesting/          # Strategy backtesting
-│   ├── api/                  # FastAPI backend
-│   ├── reporting/            # PDF report generation
-│   ├── db/                   # Database models and session
-│   └── utils/                # Config, logging, constants
-├── dashboard/                # Streamlit app
-├── notebooks/                # Jupyter notebooks for exploration
-├── tests/                    # Test suite
-├── alembic/                  # Database migrations
-├── scripts/                  # Utility scripts
-├── mlflow/                   # MLflow tracking
-├── reports/                  # Generated reports
-├── docker/                   # Docker configuration
-├── requirements.txt
-├── alembic.ini
-├── .env.example
-└── README.md
+│   ├── ingestion/              # Data ingestion module
+│   ├── processing/             # Transcript processing & cleaning
+│   ├── rag/                    # Historical accountability (RAG)
+│   ├── features/               # Feature engineering
+│   ├── models/                 # ML prediction models
+│   ├── backtesting/            # Strategy backtesting
+│   ├── api/                    # FastAPI backend
+│   ├── reporting/              # Report generation
+│   ├── db/                     # Database models & connection
+│   └── utils/                  # Shared utilities
+├── dashboard/                  # Streamlit dashboard
+├── notebooks/                  # Jupyter notebooks for exploration
+├── tests/                      # Unit & integration tests
+├── mlflow/                     # MLflow experiment tracking
+├── reports/                    # Generated reports
+├── docker/                     # Docker configuration
+├── requirements.txt            # Python dependencies
+├── .env.example                # Environment variable template
+└── README.md                   # This file
 ```
 
-## Setup
+---
 
-### Prerequisites
+## 🛠 Tech Stack
 
-- Python 3.14+
-- PostgreSQL 18+
-- Ollama (for local LLM)
-- NVIDIA GPU with CUDA support (recommended)
+| Category | Tools |
+|----------|-------|
+| Language | Python |
+| Data | pandas, NumPy |
+| Database | PostgreSQL, SQLAlchemy, Alembic |
+| NLP/ML | Transformers, FinBERT, spaCy, Sentence-Transformers |
+| Prediction | LightGBM, scikit-learn, SHAP |
+| Market Data | yfinance |
+| API | FastAPI, Pydantic, Uvicorn |
+| Dashboard | Streamlit |
+| Reports | ReportLab, Jinja2 |
+| Testing | pytest |
 
-### Installation
+---
 
-1. **Create and activate virtual environment:**
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate          # Windows
-   source .venv/bin/activate       # Linux/Mac
-   ```
+## 📊 Pipeline
 
-2. **Install PyTorch with CUDA:**
-   ```bash
-   pip install torch --index-url https://download.pytorch.org/whl/cu124
-   ```
+```
+Input → Ingestion → Transcription → Speaker ID → Segmentation
+→ Metric Extraction → Sentiment Analysis → Evasion Detection
+→ Historical RAG → Feature Engineering → Prediction
+→ Report Generation → Dashboard → Monitoring
+```
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+---
 
-4. **Configure environment:**
-   ```bash
-   copy .env.example .env          # Windows
-   cp .env.example .env            # Linux/Mac
-   ```
-   Edit `.env` with your PostgreSQL credentials.
+## 👥 Team
 
-5. **Create database:**
-   ```bash
-   python scripts/create_db.py
-   ```
+- **DataWiseWizard** - Project Lead
 
-6. **Run migrations:**
-   ```bash
-   alembic upgrade head
-   ```
+---
 
-7. **Test connection:**
-   ```bash
-   python scripts/test_db.py
-   ```
+## 📄 License
 
-## Current Data
+This project is for academic use only.
 
-| Company | Ticker | Transcripts |
-|---|---|---|
-| NVIDIA Corporation | NVDA | Q1–Q4 2023, Q1–Q4 2026, Q1–Q2 2027 |
+---
 
-## License
-
-This project is for academic use only (final-year project).
+> **Research output only.** Signals are based on historical patterns. Not financial advice.
