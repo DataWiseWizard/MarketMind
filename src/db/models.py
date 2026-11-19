@@ -132,7 +132,7 @@ class TranscriptSegment(Base):
     segment_order = Column(Integer, nullable=False)
     start_time = Column(Float)  # seconds (if from audio)
     end_time = Column(Float)
-    speaker_label = Column(String(100))  # raw speaker name
+    speaker_label = Column(String(500))  # raw speaker name
     speaker_role = Column(SQLEnum(SpeakerRole), default=SpeakerRole.UNKNOWN)
     segment_type = Column(SQLEnum(SegmentType), default=SegmentType.OTHER)
     text = Column(Text, nullable=False)

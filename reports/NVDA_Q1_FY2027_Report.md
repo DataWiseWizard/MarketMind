@@ -1,8 +1,8 @@
 # 🧠 MarketMind Financial Intelligence Report
 
-## NVIDIA Corp (NVDA) | Q1 FY2027
+## NVIDIA Corporation (NVDA) | Q1 FY2027
 - **Call Date:** May 20, 2026
-- **Sector:** Technology | **Exchange:** NASDAQ
+- **Sector:** Semiconductors | **Exchange:** NASDAQ
 - **Pipeline Status:** Completed | **Model Version:** MVP-RuleEngine-v1.0
 
 ---
@@ -11,10 +11,9 @@
 
 | Research Signal | Model Confidence | Expected Short-Term Bias |
 |---|---|---|
-| 🟢 **POSITIVE** | **78%** | **+1.9%** |
+| 🟢 **POSITIVE** | **69%** | **+1.1%** |
 
 ### 🔍 Top Drivers (SHAP / Feature Attribution)
-- Strong executive confidence (Compound +0.41)
 - Transparent Q&A responses (Low evasion 0.14)
 - High YoY revenue expansion (+85%)
 
@@ -43,10 +42,10 @@
 
 | Speaker Role | Average Compound Score | Sentiment Tone |
 |---|---|---|
-| **CEO (Jensen Huang)** | `+0.292` | Positive |
-| **CFO (Colette Kress)** | `+0.584` | Positive |
-| **Wall Street Analysts** | `+0.107` | Neutral |
-| **Call Overall** | `+0.138` | Moderate |
+| **CEO (Jensen Huang)** | `+0.073` | Neutral |
+| **CFO (Colette Kress)** | `+0.535` | Positive |
+| **Wall Street Analysts** | `+0.113` | Neutral |
+| **Call Overall** | `+0.103` | Moderate |
 
 *Total scored segments: 34*
 

@@ -1,8 +1,8 @@
 # 🧠 MarketMind Financial Intelligence Report
 
-## NVIDIA Corp (NVDA) | Q4 FY2023
+## NVIDIA Corporation (NVDA) | Q4 FY2023
 - **Call Date:** February 22, 2023
-- **Sector:** Technology | **Exchange:** NASDAQ
+- **Sector:** Semiconductors | **Exchange:** NASDAQ
 - **Pipeline Status:** Completed | **Model Version:** MVP-RuleEngine-v1.0
 
 ---
@@ -14,7 +14,6 @@
 | 🟡 **NEUTRAL** | **50%** | **+0.0%** |
 
 ### 🔍 Top Drivers (SHAP / Feature Attribution)
-- Skeptical or cautious analyst tone (+0.04)
 - Transparent Q&A responses (Low evasion 0.10)
 
 ---
@@ -38,10 +37,10 @@
 
 | Speaker Role | Average Compound Score | Sentiment Tone |
 |---|---|---|
-| **CEO (Jensen Huang)** | `+0.161` | Neutral |
-| **CFO (Colette Kress)** | `+0.517` | Positive |
-| **Wall Street Analysts** | `+0.042` | Cautious / Skeptical |
-| **Call Overall** | `+0.175` | Bullish |
+| **CEO (Jensen Huang)** | `+0.174` | Neutral |
+| **CFO (Colette Kress)** | `+0.368` | Positive |
+| **Wall Street Analysts** | `+0.162` | Neutral |
+| **Call Overall** | `+0.159` | Bullish |
 
 *Total scored segments: 27*
 

@@ -1,8 +1,8 @@
 # 🧠 MarketMind Financial Intelligence Report
 
-## NVIDIA Corp (NVDA) | Q1 FY2024
+## NVIDIA Corporation (NVDA) | Q1 FY2024
 - **Call Date:** May 24, 2023
-- **Sector:** Technology | **Exchange:** NASDAQ
+- **Sector:** Semiconductors | **Exchange:** NASDAQ
 - **Pipeline Status:** Completed | **Model Version:** MVP-RuleEngine-v1.0
 
 ---
@@ -14,7 +14,7 @@
 | 🟡 **NEUTRAL** | **50%** | **+0.0%** |
 
 ### 🔍 Top Drivers (SHAP / Feature Attribution)
-- Strong executive confidence (Compound +0.94)
+- Strong executive confidence (Compound +0.47)
 - Skeptical or cautious analyst tone (+0.00)
 - Transparent Q&A responses (Low evasion 0.10)
 
@@ -39,10 +39,10 @@
 
 | Speaker Role | Average Compound Score | Sentiment Tone |
 |---|---|---|
-| **CEO (Jensen Huang)** | `+0.900` | Positive |
-| **CFO (Colette Kress)** | `+0.997` | Positive |
+| **CEO (Jensen Huang)** | `+0.219` | Positive |
+| **CFO (Colette Kress)** | `+0.841` | Positive |
 | **Wall Street Analysts** | `+0.000` | Cautious / Skeptical |
-| **Call Overall** | `+0.481` | Bullish |
+| **Call Overall** | `+0.162` | Bullish |
 
 *Total scored segments: 14*
 

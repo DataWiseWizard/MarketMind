@@ -1,8 +1,8 @@
 # 🧠 MarketMind Financial Intelligence Report
 
-## NVIDIA Corp (NVDA) | Q2 FY2025
+## NVIDIA Corporation (NVDA) | Q2 FY2025
 - **Call Date:** August 28, 2024
-- **Sector:** Technology | **Exchange:** NASDAQ
+- **Sector:** Semiconductors | **Exchange:** NASDAQ
 - **Pipeline Status:** Completed | **Model Version:** MVP-RuleEngine-v1.0
 
 ---
@@ -11,10 +11,9 @@
 
 | Research Signal | Model Confidence | Expected Short-Term Bias |
 |---|---|---|
-| 🟢 **POSITIVE** | **78%** | **+1.9%** |
+| 🟢 **POSITIVE** | **69%** | **+1.1%** |
 
 ### 🔍 Top Drivers (SHAP / Feature Attribution)
-- Strong executive confidence (Compound +0.56)
 - Transparent Q&A responses (Low evasion 0.10)
 - High YoY revenue expansion (+122%)
 
@@ -24,6 +23,7 @@
 
 | Metric | Value | Category | Confidence |
 |---|---|---|---|
+| **guidance_revenue** | $32.50B | 🔮 Guidance / Outlook | 95% |
 | **revenue** | $30.00B | 📊 Reported | 95% |
 | **revenue_growth_yoy** | 122.0% | 📊 Reported | 90% |
 | **revenue** | $26.30B | 📊 Reported | 95% |
@@ -33,7 +33,6 @@
 | **revenue** | $0.45B | 📊 Reported | 95% |
 | **revenue** | $0.35B | 📊 Reported | 95% |
 | **revenue_growth_yoy** | 37.0% | 📊 Reported | 90% |
-| **guidance_revenue** | $32.50B | 🔮 Guidance / Outlook | 95% |
 | **guidance_non_gaap_gross_margin** | 74.4% | 🔮 Guidance / Outlook | 95% |
 
 ---
@@ -42,10 +41,10 @@
 
 | Speaker Role | Average Compound Score | Sentiment Tone |
 |---|---|---|
-| **CEO (Jensen Huang)** | `+0.609` | Positive |
-| **CFO (Colette Kress)** | `+0.492` | Positive |
-| **Wall Street Analysts** | `+0.207` | Constructive |
-| **Call Overall** | `+0.288` | Bullish |
+| **CEO (Jensen Huang)** | `+0.114` | Neutral |
+| **CFO (Colette Kress)** | `+0.406` | Positive |
+| **Wall Street Analysts** | `+0.172` | Neutral |
+| **Call Overall** | `+0.181` | Bullish |
 
 *Total scored segments: 34*
 

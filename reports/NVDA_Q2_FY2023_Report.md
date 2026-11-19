@@ -1,8 +1,8 @@
 # 🧠 MarketMind Financial Intelligence Report
 
-## NVIDIA Corp (NVDA) | Q2 FY2023
+## NVIDIA Corporation (NVDA) | Q2 FY2023
 - **Call Date:** August 24, 2022
-- **Sector:** Technology | **Exchange:** NASDAQ
+- **Sector:** Semiconductors | **Exchange:** NASDAQ
 - **Pipeline Status:** Completed | **Model Version:** MVP-RuleEngine-v1.0
 
 ---
@@ -11,11 +11,10 @@
 
 | Research Signal | Model Confidence | Expected Short-Term Bias |
 |---|---|---|
-| 🟡 **NEUTRAL** | **50%** | **+0.0%** |
+| 🔴 **NEGATIVE** | **66%** | **-0.9%** |
 
 ### 🔍 Top Drivers (SHAP / Feature Attribution)
-- Strong executive confidence (Compound +0.36)
-- Skeptical or cautious analyst tone (-0.05)
+- Skeptical or cautious analyst tone (-0.17)
 - Transparent Q&A responses (Low evasion 0.13)
 - Decelerating revenue growth (+3%)
 
@@ -41,10 +40,10 @@
 
 | Speaker Role | Average Compound Score | Sentiment Tone |
 |---|---|---|
-| **CEO (Jensen Huang)** | `+0.377` | Positive |
-| **CFO (Colette Kress)** | `+0.334` | Positive |
-| **Wall Street Analysts** | `-0.048` | Cautious / Skeptical |
-| **Call Overall** | `+0.125` | Moderate |
+| **CEO (Jensen Huang)** | `+0.272` | Positive |
+| **CFO (Colette Kress)** | `-0.057` | Neutral |
+| **Wall Street Analysts** | `-0.170` | Cautious / Skeptical |
+| **Call Overall** | `-0.003` | Moderate |
 
 *Total scored segments: 48*
 

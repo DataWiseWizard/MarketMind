@@ -31,6 +31,65 @@ from src.db.models import (
     SpeakerRole, SegmentType, CallStatus
 )
 
+COMPANY_PROFILES = {
+    "NVDA": {
+        "name": "NVIDIA Corporation",
+        "sector": "Semiconductors",
+        "exchange": "NASDAQ",
+        "ceos": ["Jensen Huang", "Jen Hsun Huang"],
+        "cfos": ["Colette M. Kress", "Colette Kress"],
+    },
+    "AMD": {
+        "name": "Advanced Micro Devices, Inc.",
+        "sector": "Semiconductors",
+        "exchange": "NASDAQ",
+        "ceos": ["Lisa Su", "Lisa T. Su"],
+        "cfos": ["Devinder Kumar", "Jean Hu"],
+    },
+    "INTC": {
+        "name": "Intel Corporation",
+        "sector": "Semiconductors",
+        "exchange": "NASDAQ",
+        "ceos": ["Patrick Gelsinger", "Pat Gelsinger"],
+        "cfos": ["David Zinsner", "Dave Zinsner"],
+    },
+    "QCOM": {
+        "name": "Qualcomm Incorporated",
+        "sector": "Semiconductors",
+        "exchange": "NASDAQ",
+        "ceos": ["Cristiano Amon", "Cristiano R. Amon"],
+        "cfos": ["Akash Palkhiwala"],
+    },
+    "TSM": {
+        "name": "Taiwan Semiconductor Manufacturing Company Limited",
+        "sector": "Semiconductors",
+        "exchange": "NYSE",
+        "ceos": ["C.C. Wei", "Che-Chia Wei", "Mark Liu"],
+        "cfos": ["Wendell Huang"],
+    },
+    "TSMC": {
+        "name": "Taiwan Semiconductor Manufacturing Company Limited",
+        "sector": "Semiconductors",
+        "exchange": "NYSE",
+        "ceos": ["C.C. Wei", "Che-Chia Wei", "Mark Liu"],
+        "cfos": ["Wendell Huang"],
+    },
+    "ASML": {
+        "name": "ASML Holding N.V.",
+        "sector": "Semiconductor Equipment",
+        "exchange": "NASDAQ",
+        "ceos": ["Peter Wennink", "Christophe Fouquet"],
+        "cfos": ["Roger Dassen"],
+    },
+    "MRVL": {
+        "name": "Marvell Technology, Inc.",
+        "sector": "Semiconductors",
+        "exchange": "NASDAQ",
+        "ceos": ["Matthew J. Murphy", "Matt Murphy"],
+        "cfos": ["Willem Meintjes"],
+    },
+}
+
 
 def find_audio_for_call(ticker: str, quarter: str, fiscal_year: int) -> Optional[str]:
     """Find matching raw audio MP3 file for a given call."""
@@ -112,8 +171,8 @@ class TranscriptParser:
                 # Skip special unicode artifacts (e.g. \ueddb)
                 if s == "\ueddb" or s == "":
                     continue
-                # Skip common running headers (e.g., "NVIDIA Corp. (NVDA) — Q1 2023 ...", "NVIDIA Corporation — Q4 FY2023 Earnings Call Transcript")
-                if re.match(r"^NVIDIA\s+Corp(?:oration)?\s*[-—–]?\s*(?:\(NVDA\))?.*?Earnings.*?Transcript", s, re.I):
+                # Skip common running headers (e.g., "NVIDIA Corp. (NVDA) — Q1 2023 ...", "AMD — Q1 2024 ...")
+                if re.match(r"^(?:NVIDIA|AMD|INTEL|QUALCOMM|ASML|MARVELL|TSMC)\s+Corp(?:oration)?\s*[-—–]?\s*(?:\([A-Z]+\))?.*?Earnings.*?Transcript", s, re.I):
                     continue
                 filtered_lines.append(s)
             cleaned_pages.append("\n".join(filtered_lines))
@@ -123,23 +182,44 @@ class TranscriptParser:
     def extract_metadata(self, pdf_path: Path | str, text: str) -> Dict[str, Any]:
         """Extract Ticker, Company Name, Quarter, Fiscal Year, and Call Date."""
         path_str = str(pdf_path).replace("\\", "/")
+        path_upper = path_str.upper()
         header_text = text[:4000]
 
-        # Ticker
-        ticker = "NVDA"
-        ticker_match = re.search(r"\b(NVDA)\b", path_str, re.I) or re.search(r"([A-Z]{2,5})[-_]Q[1-4]", path_str) or re.search(r"\(([A-Z]{1,5})\)", header_text)
-        if ticker_match:
-            cand = ticker_match.group(1).upper()
-            if cand not in ["CFO", "CEO", "COO", "CTO", "GAAP", "EPS", "SEC", "NYSE", "LLC", "INC", "CORP", "USA", "USD", "PDF", "US"]:
-                ticker = cand
+        # 1. Ticker resolution: Priority to parent/grandparent folder
+        ticker = None
+        for cand_dir in ["NVDA", "AMD", "INTC", "QCOM", "TSMC", "TSM", "ASML", "MRVL"]:
+            if f"/{cand_dir}/" in path_upper or f"\\{cand_dir}\\" in path_upper:
+                ticker = "TSM" if cand_dir == "TSMC" else cand_dir
+                break
 
-        # Company Name
-        company_name = "NVIDIA Corporation"
-        comp_match = re.search(r"(NVIDIA\s+Corp(?:oration)?)", header_text, re.I)
-        if comp_match:
-            company_name = comp_match.group(1).strip()
+        # 2. Filename or header pattern fallback
+        if not ticker:
+            ticker_match = (
+                re.search(r"([A-Z]{2,5})[-_ ]Q[1-4]", path_str, re.I)
+                or re.search(r"\b(NVDA|AMD|INTC|QCOM|TSMC|TSM|ASML|MRVL)\b", path_str, re.I)
+                or re.search(r"\(([A-Z]{1,5})\)", header_text)
+            )
+            if ticker_match:
+                cand = ticker_match.group(1).upper()
+                if cand not in ["CFO", "CEO", "COO", "CTO", "GAAP", "EPS", "SEC", "NYSE", "LLC", "INC", "CORP", "USA", "USD", "PDF", "US"]:
+                    ticker = "TSM" if cand == "TSMC" else cand
 
-        # Quarter (priority to path naming if structured like NVDA_Q4_2024, else header text)
+        if not ticker:
+            ticker = "NVDA"
+
+        # 3. Lookup Company Profile
+        profile = COMPANY_PROFILES.get(ticker, {
+            "name": f"{ticker} Corporation",
+            "sector": "Semiconductors",
+            "exchange": "NASDAQ",
+            "ceos": [],
+            "cfos": [],
+        })
+        company_name = profile["name"]
+        sector = profile.get("sector", "Semiconductors")
+        exchange = profile.get("exchange", "NASDAQ")
+
+        # Quarter (priority to path naming if structured like NVDA_Q4_2024 or AMD Q1 2025, else header text)
         quarter = "Q1"
         q_path_match = re.search(r"Q([1-4])", path_str, re.I)
         q_text_match = (
@@ -208,8 +288,8 @@ class TranscriptParser:
             "quarter": quarter,
             "fiscal_year": fiscal_year,
             "call_date": call_date,
-            "sector": "Technology",
-            "exchange": "NASDAQ",
+            "sector": sector,
+            "exchange": exchange,
             "audio_path": audio_file,
             "audio_uri": audio_file,
         }
@@ -285,13 +365,14 @@ class TranscriptParser:
                 participants[name] = {"role": role, "title": title}
                 i += 2
 
-        # Fallback names for known executive speakers
-        for known_ceo in ["Jensen Huang", "Jen Hsun Huang"]:
-            if known_ceo not in participants:
-                participants[known_ceo] = {"role": SpeakerRole.CEO, "title": "CEO"}
-        for known_cfo in ["Colette M. Kress", "Colette Kress"]:
-            if known_cfo not in participants:
-                participants[known_cfo] = {"role": SpeakerRole.CFO, "title": "CFO"}
+        # Fallback names for known executive speakers across all peer companies
+        for t_info in COMPANY_PROFILES.values():
+            for ceo_name in t_info.get("ceos", []):
+                if ceo_name not in participants:
+                    participants[ceo_name] = {"role": SpeakerRole.CEO, "title": "CEO"}
+            for cfo_name in t_info.get("cfos", []):
+                if cfo_name not in participants:
+                    participants[cfo_name] = {"role": SpeakerRole.CFO, "title": "CFO"}
 
         return participants
 
@@ -604,7 +685,7 @@ def save_parsed_to_db(parsed_data: Dict[str, Any], session: Optional[Session] = 
                 segment_order=s["segment_order"],
                 start_time=s.get("start_time"),
                 end_time=s.get("end_time"),
-                speaker_label=s["speaker_label"],
+                speaker_label=(s.get("speaker_label") or "")[:450],
                 speaker_role=s["speaker_role"],
                 segment_type=s["segment_type"],
                 text=s["text"],

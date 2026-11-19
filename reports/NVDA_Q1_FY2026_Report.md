@@ -1,8 +1,8 @@
 # 🧠 MarketMind Financial Intelligence Report
 
-## NVIDIA Corp (NVDA) | Q1 FY2026
+## NVIDIA Corporation (NVDA) | Q1 FY2026
 - **Call Date:** May 28, 2025
-- **Sector:** Technology | **Exchange:** NASDAQ
+- **Sector:** Semiconductors | **Exchange:** NASDAQ
 - **Pipeline Status:** Completed | **Model Version:** MVP-RuleEngine-v1.0
 
 ---
@@ -11,12 +11,11 @@
 
 | Research Signal | Model Confidence | Expected Short-Term Bias |
 |---|---|---|
-| 🟢 **POSITIVE** | **62%** | **+0.6%** |
+| 🔴 **NEGATIVE** | **74%** | **-1.6%** |
 
 ### 🔍 Top Drivers (SHAP / Feature Attribution)
-- Strong executive confidence (Compound +0.36)
+- Subdued executive tone (Compound -0.10)
 - Elevated evasion in Q&A (2 flagged questions, avg score 0.23)
-- High YoY revenue expansion (+69%)
 
 ---
 
@@ -24,14 +23,14 @@
 
 | Metric | Value | Category | Confidence |
 |---|---|---|---|
+| **revenue** | $0.57B | 📊 Reported | 95% |
+| **revenue_growth_yoy** | 19.0% | 📊 Reported | 90% |
 | **revenue** | $44.00B | 📊 Reported | 95% |
 | **revenue_growth_yoy** | 69.0% | 📊 Reported | 90% |
 | **revenue** | $39.00B | 📊 Reported | 95% |
 | **datacenter_revenue** | $39.00B | 📊 Reported | 95% |
 | **revenue_growth_yoy** | 73.0% | 📊 Reported | 90% |
 | **revenue** | $0.51B | 📊 Reported | 95% |
-| **revenue_growth_yoy** | 19.0% | 📊 Reported | 90% |
-| **revenue** | $0.57B | 📊 Reported | 95% |
 | **revenue_growth_yoy** | 72.0% | 📊 Reported | 90% |
 | **guidance_revenue** | $45.00B | 🔮 Guidance / Outlook | 95% |
 | **guidance_non_gaap_gross_margin** | 71.8% | 🔮 Guidance / Outlook | 95% |
@@ -42,10 +41,10 @@
 
 | Speaker Role | Average Compound Score | Sentiment Tone |
 |---|---|---|
-| **CEO (Jensen Huang)** | `+0.334` | Positive |
-| **CFO (Colette Kress)** | `+0.401` | Positive |
-| **Wall Street Analysts** | `+0.203` | Constructive |
-| **Call Overall** | `+0.144` | Moderate |
+| **CEO (Jensen Huang)** | `+0.009` | Neutral |
+| **CFO (Colette Kress)** | `-0.275` | Negative |
+| **Wall Street Analysts** | `+0.133` | Neutral |
+| **Call Overall** | `+0.002` | Moderate |
 
 *Total scored segments: 28*
 
