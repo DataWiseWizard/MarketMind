@@ -296,6 +296,183 @@ async def upload_transcript(file: UploadFile = File(...)):
     }
 
 
+
+# ══════════════════════════════════════════════════════════════════
+# Stage 2 — RAG + Prediction Endpoints
+# ══════════════════════════════════════════════════════════════════
+
+class ChatRequest(BaseModel):
+    question: str
+    use_rag: bool = True
+
+
+class AuditResponse(BaseModel):
+    call_id: int
+    ticker: str
+    quarter: str
+    overall_risk: Optional[str] = None
+    findings: List[Dict[str, Any]] = []
+    recommendation: Optional[str] = None
+    generated_at: Optional[str] = None
+
+
+@app.post("/api/agent/chat/{call_id}", tags=["AI Agent"])
+def agent_chat(call_id: int, body: ChatRequest):
+    """
+    Interactive RAG chat about an earnings call.
+    Returns AI answer grounded in transcript + 10-Q context.
+    """
+    try:
+        from src.rag.agent import MarketMindAgent
+        agent = MarketMindAgent(use_rag=body.use_rag)
+        result = agent.chat(call_id=call_id, question=body.question)
+        return result
+    except Exception as e:
+        logger.error(f"Agent chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/agent/audit/{call_id}", tags=["AI Agent"])
+def agent_audit(call_id: int, use_rag: bool = True):
+    """
+    Run the adversarial forensic audit for an earnings call.
+    Finds discrepancies, peer dissonance, and accountability gaps.
+    """
+    try:
+        from src.rag.agent import MarketMindAgent
+        agent = MarketMindAgent(use_rag=use_rag)
+        result = agent.run_forensic_audit(call_id=call_id)
+        return result
+    except Exception as e:
+        logger.error(f"Agent audit error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/signals/{call_id}", tags=["Predictions"])
+def get_signal_with_shap(call_id: int):
+    """
+    Get the LightGBM prediction + SHAP feature attributions for a call.
+    """
+    session = get_session()
+    try:
+        sig = session.query(Signal).filter_by(call_id=call_id).first()
+        if not sig:
+            raise HTTPException(status_code=404, detail=f"No signal for call_id={call_id}")
+
+        # Attempt SHAP explanation
+        shap_result = {}
+        try:
+            from src.models.explainer import predict_with_shap
+            from src.db.models import SentimentScore, EvasionScore, ExtractedMetric, AccountabilityFinding
+
+            # Build feature vector from DB
+            sents = session.query(SentimentScore).filter_by(call_id=call_id).all()
+            role_sent = {}
+            for s in sents:
+                role = (s.speaker_role.value or "unknown").lower()
+                role_sent.setdefault(role, []).append(s.compound_score)
+            avg_sent = {r: sum(v)/len(v) for r, v in role_sent.items()}
+
+            evas = session.query(EvasionScore).filter_by(call_id=call_id).all()
+            avg_evasion = sum(e.evasion_score for e in evas) / len(evas) if evas else 0.0
+            evasive_cnt = sum(1 for e in evas if e.is_evasive)
+
+            acct = session.query(AccountabilityFinding).filter_by(call_id=call_id).all()
+
+            feat_vec = {
+                "sent_ceo"          : avg_sent.get("ceo", 0.0),
+                "sent_cfo"          : avg_sent.get("cfo", 0.0),
+                "sent_analyst"      : avg_sent.get("analyst", 0.0),
+                "sent_ceo_delta"    : 0.0,
+                "sent_cfo_delta"    : 0.0,
+                "evasion_mean"      : avg_evasion,
+                "evasion_max"       : max((e.evasion_score for e in evas), default=0.0),
+                "evasive_count"     : float(evasive_cnt),
+                "revenue_qoq_pct"   : 0.0,
+                "margin_qoq_pp"     : 0.0,
+                "discrepancy_count" : float(len(acct)),
+                "momentum_30d"      : 0.0,
+                "volatility_30d"    : 0.0,
+            }
+
+            shap_result = predict_with_shap(feat_vec)
+        except Exception as e:
+            logger.warning(f"SHAP explanation unavailable: {e}")
+            shap_result = {"note": "Model not trained yet — run trainer.py first"}
+
+        return {
+            "call_id"          : call_id,
+            "predicted_signal" : sig.predicted_direction.value,
+            "confidence"       : sig.confidence,
+            "expected_return"  : sig.expected_return,
+            "top_features"     : sig.top_features or [],
+            "shap"             : shap_result,
+        }
+    finally:
+        session.close()
+
+
+@app.post("/api/vectorstore/build", tags=["RAG"])
+def build_vectorstore(background_tasks: BackgroundTasks):
+    """
+    Trigger background build of ChromaDB vector store.
+    Indexes all transcript segments + available SEC filings.
+    """
+    def _build():
+        from src.rag.vector_store import build_vector_store
+        build_vector_store()
+
+    background_tasks.add_task(_build)
+    return {"status": "building", "message": "Vector store build started in background."}
+
+
+@app.get("/api/vectorstore/search", tags=["RAG"])
+def search_vectorstore(q: str, ticker: Optional[str] = None, n: int = 5):
+    """Semantic search over the ChromaDB vector store."""
+    try:
+        from src.rag.vector_store import query_similar
+        results = query_similar(q, n=n, ticker=ticker)
+        return {"query": q, "results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/predictions", tags=["Predictions"])
+def list_predictions():
+    """
+    Return LightGBM predictions for all calls (after trainer.py is run).
+    """
+    session = get_session()
+    try:
+        # Try loading model and predicting from feature matrix if available
+        import pickle
+        from pathlib import Path as P
+        model_path = P(__file__).resolve().parent.parent.parent / "models" / "lightgbm_marketmind_v1.pkl"
+
+        if not model_path.exists():
+            return {"message": "Model not trained yet. Run: python -m src.models.trainer", "predictions": []}
+
+        matrix_path = P(__file__).resolve().parent.parent.parent / "data" / "processed" / "features" / "train_matrix.parquet"
+        if not matrix_path.exists():
+            return {"message": "Feature matrix not built yet. Run: python -m src.features.feature_builder", "predictions": []}
+
+        import pandas as pd
+        from src.models.explainer import predict_batch
+        df = pd.read_parquet(matrix_path)
+        df = predict_batch(df)
+
+        return {
+            "total": len(df),
+            "predictions": df[["call_id", "ticker", "quarter", "fiscal_year",
+                                "label", "predicted_label", "confidence"]].to_dict(orient="records"),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("src.api.main:app", host=API_HOST, port=API_PORT, reload=DEBUG)
+
