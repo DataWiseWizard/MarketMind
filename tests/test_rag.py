@@ -11,6 +11,27 @@ class TestVectorStore(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.collection = _get_collection()
+        # In clean CI environments where data/vector_store/ is not committed,
+        # self-seed a single test chunk so vector store and search contracts can be verified.
+        if cls.collection.count() == 0:
+            from src.rag.vector_store import _get_embedder
+            embedder = _get_embedder()
+            sample_doc = "NVIDIA reported Q4 revenue of $22.1 billion, up 265% year-over-year driven by Data Center growth."
+            sample_emb = embedder.encode([sample_doc]).tolist()
+            cls.collection.add(
+                documents=[sample_doc],
+                embeddings=sample_emb,
+                metadatas=[{
+                    "ticker": "NVDA",
+                    "quarter": "Q4",
+                    "year": "2024",
+                    "doc_type": "transcript",
+                    "speaker_role": "CFO",
+                    "call_id": "1",
+                    "segment_id": "1",
+                }],
+                ids=["test_ci_nvda_chunk_1"],
+            )
 
     def test_vector_store_collection_exists(self):
         """Assert ChromaDB collection is created and populated with chunks."""
