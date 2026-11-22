@@ -29,6 +29,8 @@ env/
 # Data (large files - don't commit raw data)
 data/raw/audio/
 data/raw/market_data/
+data/raw/sec_filings/
+data/vector_store/
 data/processed/
 data/external/
 *.wav

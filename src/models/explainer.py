@@ -80,12 +80,18 @@ def predict_with_shap(feature_dict: dict) -> dict:
     explainer  = shap.TreeExplainer(model)
     shap_vals  = explainer.shap_values(X)
 
-    # For multiclass: shap_vals is list[array(n_samples, n_features)] per class
-    # Use the predicted class's shap values
-    if isinstance(shap_vals, list):
+    # For multiclass: shap_vals can be array of shape (n_samples, n_features, n_classes) or list
+    if isinstance(shap_vals, np.ndarray):
+        if shap_vals.ndim == 3:
+            vals = shap_vals[0, :, pred_i]
+        elif shap_vals.ndim == 2:
+            vals = shap_vals[0]
+        else:
+            vals = shap_vals.flatten()
+    elif isinstance(shap_vals, list):
         vals = shap_vals[pred_i][0]
     else:
-        vals = shap_vals[0]
+        vals = np.array(shap_vals).flatten()
 
     shap_list = [
         {"feature": f, "shap_value": round(float(v), 5)}
@@ -109,13 +115,17 @@ def predict_batch(df: pd.DataFrame, features: Optional[list] = None) -> pd.DataF
     if features is None:
         features = feat_cols
 
-    X = df[[f for f in features if f in df.columns]].fillna(0).values.astype(np.float32)
+    df = df.copy()
+    for f in features:
+        if f not in df.columns:
+            df[f] = 0.0
+
+    X = df[features].fillna(0).values.astype(np.float32)
 
     proba  = model.predict_proba(X)
     preds  = np.argmax(proba, axis=1)
     confs  = proba[np.arange(len(preds)), preds]
 
-    df = df.copy()
     df["predicted_label"] = [label_remap.get(p, "NEUTRAL") for p in preds]
     df["confidence"]      = confs.round(4)
     return df

@@ -1,0 +1,15 @@
+[
+  "sent_ceo",
+  "sent_cfo",
+  "sent_analyst",
+  "sent_ceo_delta",
+  "sent_cfo_delta",
+  "evasion_mean",
+  "evasion_max",
+  "evasive_count",
+  "revenue_qoq_pct",
+  "margin_qoq_pp",
+  "discrepancy_count",
+  "momentum_30d",
+  "volatility_30d"
+]

@@ -103,9 +103,9 @@ def test_postgresql():
             print("\n🔧 Creating tables in PostgreSQL...")
             init_database()
             print("\n✅ PostgreSQL is fully set up!")
-            return True
+            assert True
         else:
-            return False
+            assert False, "PostgreSQL connection failed"
 
     except Exception as e:
         print(f"\n⚠️  PostgreSQL test failed: {e}")

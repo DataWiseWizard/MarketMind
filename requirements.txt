@@ -35,6 +35,7 @@ yfinance==0.2.62
 # ---- API ----
 fastapi==0.115.12
 uvicorn==0.34.3
+python-multipart>=0.0.9
 
 # ---- Dashboard ----
 streamlit==1.45.1
