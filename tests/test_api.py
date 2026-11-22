@@ -12,18 +12,18 @@ class TestMarketMindAPI(unittest.TestCase):
     def setUpClass(cls):
         from src.db.connection import get_session, init_database
         from src.db.models import Company, EarningsCall, CallStatus
-        from datetime import datetime, timezone
+        from datetime import date
 
         init_database()
         session = get_session()
         try:
-            # Seed minimum test fixtures if DB is empty (e.g. CI in-memory SQLite)
+            # Seed minimum test fixtures if DB is empty (e.g. fresh CI environment)
             if session.query(Company).count() == 0:
                 sample_co = Company(
                     ticker="NVDA",
                     company_name="NVIDIA Corporation",
                     sector="Semiconductors",
-                    fiscal_year_end="January",
+                    exchange="NASDAQ",
                 )
                 session.add(sample_co)
                 session.commit()
@@ -33,8 +33,9 @@ class TestMarketMindAPI(unittest.TestCase):
                     company_id=sample_co.company_id,
                     quarter="Q4",
                     fiscal_year=2024,
-                    call_date=datetime.now(timezone.utc),
+                    call_date=date(2024, 11, 20),
                     status=CallStatus.COMPLETED,
+                    source="test",
                 )
                 session.add(sample_call)
                 session.commit()
