@@ -10,6 +10,11 @@ from src.rag.vector_store import query_similar, _get_collection
 class TestVectorStore(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        try:
+            import chromadb
+        except ImportError:
+            raise unittest.SkipTest("chromadb not installed")
+
         cls.collection = _get_collection()
         # In clean CI environments where data/vector_store/ is not committed,
         # self-seed a single test chunk so vector store and search contracts can be verified.
