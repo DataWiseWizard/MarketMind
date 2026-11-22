@@ -64,15 +64,15 @@ class MarketMindPipeline:
             sentiments = self.sentiment_analyzer.analyze_for_call(call_id, session=session)
 
             # 4. Evasion Detection
-            logger.info(f"🕵️ [Stage 4/6] Detecting Evasion in Q&A pairs...")
+            logger.info("🕵️ [Stage 4/6] Detecting Evasion in Q&A pairs...")
             evasions = self.evasion_detector.analyze_for_call(call_id, session=session)
 
             # 5. Signal Generation
-            logger.info(f"🎯 [Stage 5/6] Generating Research Signal & Feature Drivers...")
+            logger.info("🎯 [Stage 5/6] Generating Research Signal & Feature Drivers...")
             signal = self.signal_generator.compute_signal(call_id, session=session)
 
             # 6. Report Generation
-            logger.info(f"📑 [Stage 6/6] Generating Comprehensive Report...")
+            logger.info("📑 [Stage 6/6] Generating Comprehensive Report...")
             report_md, report_path = self.report_generator.generate_report_markdown(call_id, session=session)
 
             logger.info(f"🎉 Pipeline Completed for {company.ticker} {call.quarter} FY{call.fiscal_year}!")

@@ -41,6 +41,17 @@ class TestFinancialMetricExtractor(unittest.TestCase):
         self.assertEqual(guidance["value"], 45.0)
         self.assertTrue(guidance["is_guidance"])
 
+    def test_extract_eps_and_margins(self):
+        sentence = "Non-GAAP diluted EPS was $1.07, and gross margin reached 54.0%."
+        metrics = self.extractor.extract_from_sentence(
+            sentence=sentence,
+            speaker_role=SpeakerRole.CFO,
+            is_outlook_context=False,
+            call_period="Q4 FY2023",
+        )
+        names = {m["metric_name"] for m in metrics}
+        self.assertTrue(any("gross_margin" in name or "eps" in name for name in names))
+
 
 if __name__ == "__main__":
     unittest.main()

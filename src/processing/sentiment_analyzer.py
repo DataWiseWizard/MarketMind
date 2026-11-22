@@ -63,7 +63,7 @@ class SentimentAnalyzer:
             logger.info(f"Loading FinBERT model ({model_name})...")
             self.tokenizer = BertTokenizer.from_pretrained(model_name)
             self.model = BertForSequenceClassification.from_pretrained(model_name)
-            self.pipe = pipeline("text-classification", model=self.model, tokenizer=self.tokenizer, return_all_scores=True)
+            self.pipe = pipeline("text-classification", model=self.model, tokenizer=self.tokenizer, top_k=None)
             self.use_transformer = True
             logger.info("✅ FinBERT model loaded successfully.")
         except Exception as e:

@@ -65,11 +65,11 @@ def predict_with_shap(feature_dict: dict) -> dict:
     model, features, label_map = _load_model()
     label_remap = {v: k for k, v in label_map.items()}
 
-    # Build feature vector
-    X = np.array([[feature_dict.get(f, 0.0) for f in features]], dtype=np.float32)
+    # Build feature dataframe with column names
+    X_df = pd.DataFrame([[feature_dict.get(f, 0.0) for f in features]], columns=features, dtype=np.float32)
 
     # Predict
-    proba  = model.predict_proba(X)[0]
+    proba  = model.predict_proba(X_df)[0]
     pred_i = int(np.argmax(proba))
     conf   = float(proba[pred_i])
     label  = label_remap.get(pred_i, "NEUTRAL")
@@ -78,7 +78,7 @@ def predict_with_shap(feature_dict: dict) -> dict:
 
     # SHAP — TreeExplainer
     explainer  = shap.TreeExplainer(model)
-    shap_vals  = explainer.shap_values(X)
+    shap_vals  = explainer.shap_values(X_df)
 
     # For multiclass: shap_vals can be array of shape (n_samples, n_features, n_classes) or list
     if isinstance(shap_vals, np.ndarray):
@@ -120,9 +120,9 @@ def predict_batch(df: pd.DataFrame, features: Optional[list] = None) -> pd.DataF
         if f not in df.columns:
             df[f] = 0.0
 
-    X = df[features].fillna(0).values.astype(np.float32)
+    X_df = df[features].fillna(0).astype(np.float32)
 
-    proba  = model.predict_proba(X)
+    proba  = model.predict_proba(X_df)
     preds  = np.argmax(proba, axis=1)
     confs  = proba[np.arange(len(preds)), preds]
 

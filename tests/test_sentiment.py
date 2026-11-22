@@ -22,6 +22,12 @@ class TestSentimentAnalyzer(unittest.TestCase):
         self.assertGreater(res["negative"], res["positive"])
         self.assertLess(res["compound"], -0.2)
 
+    def test_neutral_operational_sentiment(self):
+        text = "Thank you operator. I will now turn the call over to questions from the audience."
+        res = self.analyzer.analyze_text(text)
+        self.assertGreater(res["neutral"], res["positive"])
+        self.assertGreater(res["neutral"], res["negative"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -14,10 +14,11 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from loguru import logger
 
 from src.config import API_HOST, API_PORT, DEBUG, DISCLAIMER, RAW_DATA_DIR
@@ -29,10 +30,18 @@ from src.db.models import (
 from src.pipeline import MarketMindPipeline
 from src.reporting.report_generator import ReportGenerator
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_database()
+    logger.info("MarketMind API started. Database ready.")
+    yield
+
+
 app = FastAPI(
     title="MarketMind Financial Intelligence API",
     description="Automated Financial Earnings Call Analysis and Market Signal Generation Pipeline",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Enable CORS for frontend integration
@@ -51,14 +60,12 @@ report_gen = ReportGenerator()
 # ---- Pydantic Schemas ----
 
 class CompanyResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     company_id: int
     ticker: str
     company_name: str
     sector: Optional[str] = None
     exchange: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 
 class EarningsCallSummary(BaseModel):
@@ -97,12 +104,6 @@ class EvasionResponse(BaseModel):
 
 
 # ---- API Endpoints ----
-
-@app.on_event("startup")
-def startup_event():
-    init_database()
-    logger.info("MarketMind API started. Database ready.")
-
 
 @app.get("/health", tags=["System"])
 def health_check():

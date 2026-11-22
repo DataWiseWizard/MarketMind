@@ -9,6 +9,14 @@ build/
 eggs/
 *.egg
 
+# Testing & Linting
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
 # Virtual Environment
 venv/
 env/
