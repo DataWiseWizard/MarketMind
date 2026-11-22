@@ -117,29 +117,23 @@ def train_model(X, y, train_mask, val_mask, feature_names):
         logger.warning("No training data! Check fiscal_year values in DB.")
 
     params = {
-        "objective"      : "multiclass",
-        "num_class"      : 3,
-        "metric"         : "multi_logloss",
-        "n_estimators"   : 300,
-        "learning_rate"  : 0.05,
-        "num_leaves"     : 15,
-        "min_child_samples": 2,     # small dataset — reduce regularization
-        "subsample"      : 0.8,
-        "colsample_bytree": 0.8,
-        "random_state"   : 42,
-        "verbose"        : -1,
-        "class_weight"   : "balanced",
+        "objective": "multiclass",
+        "num_class": 3,
+        "metric": "multi_logloss",
+        "n_estimators": 45,
+        "learning_rate": 0.08,
+        "max_depth": 3,
+        "num_leaves": 7,
+        "min_child_samples": 4,
+        "subsample": 0.85,
+        "colsample_bytree": 0.85,
+        "random_state": 42,
+        "verbose": -1,
     }
 
-    eval_set = [(X_val, y_val)] if len(X_val) > 0 else None
-
     model = lgb.LGBMClassifier(**params)
-    model.fit(
-        X_train, y_train,
-        eval_set=eval_set,
-        callbacks=[lgb.early_stopping(30, verbose=False), lgb.log_evaluation(period=-1)],
-    )
-    logger.success(f"Model trained — best iteration: {model.best_iteration_}")
+    model.fit(X_train, y_train)
+    logger.success(f"Model trained — trees: {model.n_estimators}, max_depth: {model.max_depth}")
     return model
 
 

@@ -95,8 +95,6 @@ def build_market_labels() -> pd.DataFrame:
     logger.info(f"Found {len(rows)} earnings calls to label.")
 
     # ── Determine date range for bulk price download ──────────────────────────
-    all_dates   = [row.call_date for _, row in rows]  # EarningsCall attr
-    # Unpack correctly
     call_records = [(ec, co) for ec, co in rows]
     all_dates    = [ec.call_date for ec, co in call_records]
 
@@ -112,6 +110,7 @@ def build_market_labels() -> pd.DataFrame:
         end=end_dt.strftime("%Y-%m-%d"),
         auto_adjust=True,
         progress=False,
+        threads=False,
     )
 
     # Flatten multi-level columns → {ticker: close_series}
@@ -140,6 +139,8 @@ def build_market_labels() -> pd.DataFrame:
 
             if stock_ret is not None and bench_ret is not None:
                 ar = stock_ret - bench_ret
+            elif stock_ret is not None:
+                ar = stock_ret
             else:
                 ar = None
 

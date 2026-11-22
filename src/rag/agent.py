@@ -40,7 +40,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL   = "gemini-2.0-flash"
+CANDIDATE_MODELS = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.5-flash",
+]
 
 # Rate limit guard (free tier: 15 RPM)
 import time
@@ -59,7 +62,7 @@ def _rate_limit():
 # ── Gemini client ─────────────────────────────────────────────────────────────
 
 def _call_gemini(prompt: str, temperature: float = 0.3) -> str:
-    """Call Gemini API and return text response."""
+    """Call Gemini API using modern google-genai with automatic model fallback."""
     if not GEMINI_API_KEY:
         return (
             "⚠️ GEMINI_API_KEY not set in .env file.\n"
@@ -68,26 +71,29 @@ def _call_gemini(prompt: str, temperature: float = 0.3) -> str:
         )
 
     try:
-        import google.generativeai as genai
+        from google import genai
     except ImportError:
-        logger.error("google-generativeai not installed. Run: pip install google-generativeai")
-        return "Error: google-generativeai package not installed."
+        logger.error("google-genai not installed. Run: pip install google-genai")
+        return "Error: google-genai package not installed."
 
-    _rate_limit()
-    try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel(
-            model_name=GEMINI_MODEL,
-            generation_config=genai.types.GenerationConfig(
-                temperature=temperature,
-                max_output_tokens=2048,
-            ),
-        )
-        response = model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        logger.error(f"Gemini API error: {e}")
-        return f"[Gemini API error: {e}]"
+    client = genai.Client(api_key=GEMINI_API_KEY)
+
+    last_error = None
+    for model_name in CANDIDATE_MODELS:
+        _rate_limit()
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+            )
+            if response and response.text:
+                return response.text.strip()
+        except Exception as e:
+            logger.warning(f"Gemini {model_name} failed: {e}. Trying fallback...")
+            last_error = e
+
+    logger.error(f"All Gemini candidate models failed: {last_error}")
+    return f"[Gemini API error: {last_error}]"
 
 
 # ── Context builders ──────────────────────────────────────────────────────────
