@@ -2,24 +2,39 @@
 MarketMind Database Connection & Session Management
 """
 
+import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from src.config import DATABASE_URL
 from src.db.models import Base
 from loguru import logger
 
+_engine = None
+
 
 def get_engine(db_url: str = None):
-    """Create and return a SQLAlchemy engine."""
-    url = db_url or DATABASE_URL
+    """Create and return a SQLAlchemy engine (singleton for default URL)."""
+    global _engine
+    if db_url is None and _engine is not None:
+        return _engine
+
+    url = db_url or os.getenv("DATABASE_URL", DATABASE_URL)
     kwargs = {
         "echo": False,
     }
-    if not url.startswith("sqlite"):
+    if url.startswith("sqlite"):
+        from sqlalchemy.pool import StaticPool
+        kwargs["connect_args"] = {"check_same_thread": False}
+        if ":memory:" in url:
+            kwargs["poolclass"] = StaticPool
+    else:
         kwargs["pool_size"] = 5
         kwargs["max_overflow"] = 10
         kwargs["pool_pre_ping"] = True
+
     engine = create_engine(url, **kwargs)
+    if db_url is None:
+        _engine = engine
     return engine
 
 

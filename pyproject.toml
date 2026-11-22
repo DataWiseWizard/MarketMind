@@ -1,0 +1,24 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# Select only syntax errors and true functional defects
+select = ["E9", "F"]
+
+# Ignore stylistic and common data-science patterns:
+# F401: unused import (frequent in __init__.py and model setups)
+# F841: local variable assigned but never used
+# E501: line too long
+# E402: module level import not at top
+ignore = [
+    "F401",
+    "F841",
+    "E501",
+    "E402",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+

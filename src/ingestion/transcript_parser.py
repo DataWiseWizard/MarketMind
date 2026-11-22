@@ -461,7 +461,7 @@ class TranscriptParser:
         sorted_speakers = sorted(known_speakers, key=len, reverse=True)
 
         speaker_patterns = [
-            rf"(?:^|\n)(Operator:\s*|Emma \(Conference Operator\):\s*|David \(Conference Operator\):\s*|Rob:\s*|Regina:\s*)",
+            r"(?:^|\n)(Operator:\s*|Emma \(Conference Operator\):\s*|David \(Conference Operator\):\s*|Rob:\s*|Regina:\s*)",
         ]
         for name in sorted_speakers:
             if name != "Operator":
