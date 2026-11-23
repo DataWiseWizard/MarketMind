@@ -213,25 +213,65 @@ def get_call_metrics(call_id: int):
 
 @app.get("/api/calls/{call_id}/sentiment", tags=["Analysis"])
 def get_call_sentiment(call_id: int):
-    """Get aggregated sentiment scores and role breakdowns."""
+    """Get aggregated sentiment scores, role breakdowns, and segment timeline."""
     session = get_session()
     try:
-        sentiments = session.query(SentimentScore).filter_by(call_id=call_id).all()
+        from src.db.models import TranscriptSegment
+        sentiments = (
+            session.query(SentimentScore, TranscriptSegment.segment_order)
+            .outerjoin(TranscriptSegment, TranscriptSegment.segment_id == SentimentScore.segment_id)
+            .filter(SentimentScore.call_id == call_id)
+            .order_by(TranscriptSegment.segment_order)
+            .all()
+        )
         if not sentiments:
-            return {"call_id": call_id, "scored_segments": 0, "roles": {}}
+            return {
+                "call_id": call_id,
+                "scored_segments": 0,
+                "roles": {},
+                "ceo_mean": 0.0,
+                "cfo_mean": 0.0,
+                "analyst_mean": 0.0,
+                "ceo_cfo_delta": 0.0,
+                "segments": [],
+            }
 
         roles_dict = {}
-        for s in sentiments:
+        seg_list = []
+        for s, seg_order in sentiments:
             role = s.speaker_role.value if s.speaker_role else "unknown"
-            roles_dict.setdefault(role, []).append(s.compound_score)
+            role_key = role.lower()
+            roles_dict.setdefault(role_key, []).append(s.compound_score)
+            seg_list.append({
+                "segment_order": seg_order or len(seg_list) + 1,
+                "role": role.upper(),
+                "speaker": role.upper(),
+                "compound": round(s.compound_score, 4),
+                "positive": round(s.positive_score, 4),
+                "neutral": round(s.neutral_score, 4),
+                "negative": round(s.negative_score, 4),
+            })
+
+        ceo_scores = roles_dict.get("ceo", [])
+        cfo_scores = roles_dict.get("cfo", [])
+        analyst_scores = roles_dict.get("analyst", [])
+
+        ceo_mean = round(sum(ceo_scores) / len(ceo_scores), 4) if ceo_scores else 0.0
+        cfo_mean = round(sum(cfo_scores) / len(cfo_scores), 4) if cfo_scores else 0.0
+        analyst_mean = round(sum(analyst_scores) / len(analyst_scores), 4) if analyst_scores else 0.0
 
         return {
             "call_id": call_id,
             "total_segments_scored": len(sentiments),
-            "overall_compound": round(sum(s.compound_score for s in sentiments) / len(sentiments), 4),
+            "overall_compound": round(sum(s[0].compound_score for s in sentiments) / len(sentiments), 4),
+            "ceo_mean": ceo_mean,
+            "cfo_mean": cfo_mean,
+            "analyst_mean": analyst_mean,
+            "ceo_cfo_delta": round(ceo_mean - cfo_mean, 4),
             "roles": {
                 r: round(sum(v) / len(v), 4) for r, v in roles_dict.items()
             },
+            "segments": seg_list,
         }
     finally:
         session.close()
