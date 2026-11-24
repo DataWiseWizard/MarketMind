@@ -1,91 +1,91 @@
 {
   "train_years": [
     2023,
-    2024
-  ],
-  "val_years": [
+    2024,
     2025
   ],
+  "val_years": [
+    2024
+  ],
   "test_years": [
-    2025,
     2026
   ],
   "train": {
-    "accuracy": 0.9574,
-    "f1_macro": 0.9559,
+    "accuracy": 0.9714,
+    "f1_macro": 0.9647,
     "confusion_matrix": [
       [
-        13,
+        22,
         0,
         0
       ],
       [
-        1,
-        17,
+        0,
+        31,
         0
       ],
       [
-        1,
+        2,
         0,
         15
       ]
     ]
   },
   "val": {
-    "accuracy": 0.3043,
-    "f1_macro": 0.268,
+    "accuracy": 0.96,
+    "f1_macro": 0.9454,
     "confusion_matrix": [
       [
-        4,
-        2,
-        3
+        9,
+        0,
+        0
       ],
       [
-        3,
-        3,
-        7
+        0,
+        11,
+        0
       ],
       [
         1,
-        0,
-        0
-      ]
-    ]
-  },
-  "test": {
-    "accuracy": 0.425,
-    "f1_macro": 0.4205,
-    "confusion_matrix": [
-      [
-        7,
-        3,
-        6
-      ],
-      [
-        4,
-        6,
-        7
-      ],
-      [
-        3,
         0,
         4
       ]
     ]
   },
+  "test": {
+    "accuracy": 0.5294,
+    "f1_macro": 0.4917,
+    "confusion_matrix": [
+      [
+        5,
+        1,
+        1
+      ],
+      [
+        1,
+        3,
+        0
+      ],
+      [
+        3,
+        2,
+        1
+      ]
+    ]
+  },
   "feature_importances": {
-    "volatility_30d": 189,
-    "momentum_30d": 166,
-    "revenue_qoq_pct": 123,
-    "sent_analyst": 56,
-    "sent_cfo": 50,
-    "sent_cfo_delta": 25,
-    "sent_ceo_delta": 21,
-    "sent_ceo": 20,
-    "evasion_mean": 10,
+    "volatility_30d": 151,
+    "momentum_30d": 125,
+    "revenue_qoq_pct": 112,
+    "sent_cfo": 94,
+    "sent_ceo": 35,
+    "margin_qoq_pp": 28,
+    "sent_cfo_delta": 26,
+    "sent_ceo_delta": 22,
+    "sent_analyst": 20,
+    "evasion_mean": 4,
     "evasion_max": 1,
     "evasive_count": 0,
-    "margin_qoq_pp": 0,
     "discrepancy_count": 0
   }
 }
