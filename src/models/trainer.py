@@ -68,9 +68,28 @@ BASE_FEATURES = [
 
 def load_data() -> pd.DataFrame:
     if not MATRIX_PATH.exists():
-        logger.error(f"Feature matrix not found: {MATRIX_PATH}")
-        logger.error("Run feature_builder.py first: python -m src.features.feature_builder")
-        sys.exit(1)
+        # Fallback 1: check if CSV fallback exists
+        csv_path = MATRIX_PATH.with_suffix(".csv")
+        if csv_path.exists():
+            logger.info(f"Loading matrix from CSV fallback: {csv_path}")
+            df = pd.read_csv(csv_path)
+            return df
+
+        # Fallback 2: dynamic feature build
+        logger.error(f"Feature matrix not found at {MATRIX_PATH}. Attempting automated build...")
+        try:
+            from src.features.feature_builder import build_feature_matrix
+            df = build_feature_matrix()
+            if df is not None and not df.empty:
+                return df
+        except Exception as e:
+            logger.warning(f"Automated feature build failed: {e}")
+
+        raise FileNotFoundError(
+            f"Feature matrix not found: {MATRIX_PATH}. "
+            "Please ensure data/processed/features/train_matrix.parquet is committed to repository."
+        )
+
     df = pd.read_parquet(MATRIX_PATH)
     logger.info(f"Loaded matrix: {df.shape}")
     return df

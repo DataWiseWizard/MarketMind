@@ -39,7 +39,8 @@ data/raw/audio/
 data/raw/market_data/
 data/raw/sec_filings/
 data/vector_store/
-data/processed/
+data/processed/transcripts/
+data/processed/embeddings/
 data/external/
 *.wav
 *.mp3
@@ -54,6 +55,10 @@ data/external/
 !data/processed/features/.gitkeep
 !data/processed/embeddings/.gitkeep
 !data/external/.gitkeep
+
+# Explicitly track processed feature matrices (small, needed for walk-forward retraining in cloud)
+!data/processed/features/*.parquet
+!data/processed/features/*.csv
 
 # MLflow
 mlruns/
