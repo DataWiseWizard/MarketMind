@@ -306,3 +306,55 @@ def get_mock_metrics_data(call_id: int) -> list[dict[str, Any]]:
         {"metric_name": "Q1 Revenue Guidance", "value": 43.0, "unit": "B USD", "period": "Q1 FY27", "is_guidance": True, "confidence": 0.95, "quote": "Revenue for the first quarter of fiscal 2027 is expected to be $43.0 billion, plus or minus 2%."},
         {"metric_name": "Q1 Margin Guidance", "value": 71.0, "unit": "%", "period": "Q1 FY27", "is_guidance": True, "confidence": 0.94, "quote": "GAAP and non-GAAP gross margins are expected to be 71.0% and 71.5%, respectively."},
     ]
+
+
+def get_mock_drift_data() -> dict[str, Any]:
+    """Returns fallback feature and prediction drift metrics."""
+    return {
+        "timestamp": "2026-11-23T10:19:16.778027+00:00",
+        "overall_status": "CRITICAL",
+        "reference_split": "Years [2023, 2024] (N=47)",
+        "current_split": "Years [2025, 2026] (N=40)",
+        "reference_sample_count": 47,
+        "current_sample_count": 40,
+        "total_features_evaluated": 13,
+        "critical_features_count": 5,
+        "warning_features_count": 3,
+        "critical_features": [
+            "sent_ceo_delta",
+            "evasive_count",
+            "revenue_qoq_pct",
+            "momentum_30d",
+            "volatility_30d",
+        ],
+        "warning_features": [
+            "sent_ceo",
+            "sent_cfo",
+            "sent_analyst",
+        ],
+        "feature_metrics": {
+            "volatility_30d": {"psi": 0.421, "ks_statistic": 0.381, "ks_pvalue": 0.0012, "drift_level": "CRITICAL", "ref_mean": 0.284, "ref_std": 0.082, "cur_mean": 0.412, "cur_std": 0.115, "delta_mean": 0.128},
+            "momentum_30d": {"psi": 0.345, "ks_statistic": 0.312, "ks_pvalue": 0.0084, "drift_level": "CRITICAL", "ref_mean": 0.045, "ref_std": 0.121, "cur_mean": 0.138, "cur_std": 0.162, "delta_mean": 0.093},
+            "revenue_qoq_pct": {"psi": 0.289, "ks_statistic": 0.264, "ks_pvalue": 0.0210, "drift_level": "CRITICAL", "ref_mean": 0.062, "ref_std": 0.094, "cur_mean": 0.151, "cur_std": 0.148, "delta_mean": 0.089},
+            "sent_ceo_delta": {"psi": 0.262, "ks_statistic": 0.248, "ks_pvalue": 0.0350, "drift_level": "CRITICAL", "ref_mean": -0.012, "ref_std": 0.142, "cur_mean": 0.084, "cur_std": 0.118, "delta_mean": 0.096},
+            "evasive_count": {"psi": 0.254, "ks_statistic": 0.235, "ks_pvalue": 0.0410, "drift_level": "CRITICAL", "ref_mean": 1.42, "ref_std": 1.15, "cur_mean": 2.35, "cur_std": 1.48, "delta_mean": 0.93},
+            "sent_ceo": {"psi": 0.190, "ks_statistic": 0.2016, "ks_pvalue": 0.2908, "drift_level": "MODERATE", "ref_mean": 0.1215, "ref_std": 0.190, "cur_mean": 0.0504, "cur_std": 0.1307, "delta_mean": -0.0711},
+            "sent_analyst": {"psi": 0.1627, "ks_statistic": 0.0835, "ks_pvalue": 0.9928, "drift_level": "MODERATE", "ref_mean": 0.0624, "ref_std": 0.170, "cur_mean": 0.0112, "cur_std": 0.142, "delta_mean": -0.0512},
+            "sent_cfo": {"psi": 0.1523, "ks_statistic": 0.1239, "ks_pvalue": 0.8393, "drift_level": "MODERATE", "ref_mean": 0.1942, "ref_std": 0.3049, "cur_mean": 0.1241, "cur_std": 0.2208, "delta_mean": -0.0701},
+            "evasion_mean": {"psi": 0.084, "ks_statistic": 0.112, "ks_pvalue": 0.7200, "drift_level": "STABLE", "ref_mean": 0.38, "ref_std": 0.14, "cur_mean": 0.41, "cur_std": 0.15, "delta_mean": 0.03},
+            "evasion_max": {"psi": 0.071, "ks_statistic": 0.098, "ks_pvalue": 0.8100, "drift_level": "STABLE", "ref_mean": 0.72, "ref_std": 0.19, "cur_mean": 0.75, "cur_std": 0.18, "delta_mean": 0.03},
+            "sent_cfo_delta": {"psi": 0.065, "ks_statistic": 0.088, "ks_pvalue": 0.8800, "drift_level": "STABLE", "ref_mean": 0.02, "ref_std": 0.11, "cur_mean": 0.01, "cur_std": 0.10, "delta_mean": -0.01},
+            "margin_qoq_pp": {"psi": 0.042, "ks_statistic": 0.072, "ks_pvalue": 0.9400, "drift_level": "STABLE", "ref_mean": 0.45, "ref_std": 1.20, "cur_mean": 0.38, "cur_std": 1.15, "delta_mean": -0.07},
+            "discrepancy_count": {"psi": 0.000, "ks_statistic": 0.000, "ks_pvalue": 1.0000, "drift_level": "STABLE", "ref_mean": 0.0, "ref_std": 0.0, "cur_mean": 0.0, "cur_std": 0.0, "delta_mean": 0.0},
+        },
+        "prediction_drift": {
+            "psi": 0.278,
+            "drift_level": "CRITICAL",
+            "reference_distribution": {"NEGATIVE": 0.2766, "NEUTRAL": 0.383, "POSITIVE": 0.3404},
+            "current_distribution": {"NEGATIVE": 0.375, "NEUTRAL": 0.250, "POSITIVE": 0.375},
+        },
+        "recommendations": [
+            "Trigger automated walk-forward model retraining: feature and prediction distributions diverge significantly from baseline.",
+            "Volatility shift detected (macro tech market regime change). Consider adjusting classification decision thresholds.",
+        ],
+    }

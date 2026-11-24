@@ -1,3 +1,13 @@
+---
+title: MarketMind Financial Intelligence API
+emoji: 🧠
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🧠 MarketMind
 
 **Automated Financial Earnings Call Analysis and Market Signal Generation Pipeline**
@@ -97,6 +107,41 @@ MarketMind/
 ├── .env.example                # Environment variable template
 └── README.md                   # This file
 ```
+
+---
+
+## ☁️ Cloud Deployment Architecture ($0 Free Tier)
+
+MarketMind is configured for zero-cost cloud deployment using **Render** for the backend and **Streamlit Community Cloud** for the frontend:
+
+```
+┌─────────────────────────────────┐        REST JSON        ┌────────────────────────────────────┐
+│   Streamlit Community Cloud     │ ──────────────────────> │           Render Web Service       │
+│   (Frontend Terminal UI)        │ <────────────────────── │         (FastAPI Docker API)       │
+│   • Entry: dashboard/app.py     │        HTTPS / TLS      │   • Port: 10000 (Dynamic $PORT)    │
+│   • Free Hosting (1 GB RAM)     │                         │   • 100% Free Tier (512 MB RAM)    │
+│   • Installs lightweight reqs   │                         │   • Built via render.yaml or Docker│
+└─────────────────────────────────┘                         └────────────────────────────────────┘
+```
+
+### 1. Backend: Render (FastAPI Web Service - 100% Free)
+1. Go to [dashboard.render.com](https://dashboard.render.com/) and click **New** $\rightarrow$ **Blueprint** (or **Web Service**).
+2. Connect your GitHub repository: `DataWiseWizard/MarketMind`.
+3. Render automatically detects [render.yaml](file:///c:/Rudy/MarketMind/render.yaml) or your `Dockerfile`.
+4. Enter your environment secret:
+   - `GEMINI_API_KEY`: *(From [Google AI Studio](https://aistudio.google.com/))*
+5. Click **Apply**. Render builds the service and generates your live URL:
+   `https://marketmind-api.onrender.com`
+
+### 2. Frontend: Streamlit Community Cloud (100% Free)
+1. Deploy on [share.streamlit.io](https://share.streamlit.io) from your GitHub repo.
+2. Set **Main file path** to `dashboard/app.py`.
+3. Under **Advanced settings -> Secrets**, set:
+   ```toml
+   MARKETMIND_API_URL = "https://marketmind-api.onrender.com"
+   GEMINI_API_KEY = "your_gemini_api_key_here"
+   ```
+4. Streamlit installs `dashboard/requirements.txt` instantly and links to your live Render backend.
 
 ---
 

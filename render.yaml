@@ -1,0 +1,22 @@
+# ==============================================================================
+# MarketMind - Render Blueprint (Infrastructure-as-Code)
+# Free Web Service Deployment for FastAPI Backend
+# ==============================================================================
+services:
+  - type: web
+    name: marketmind-api
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: rudy/main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: DEBUG
+        value: "False"
+      - key: GEMINI_API_KEY
+        sync: false

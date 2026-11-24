@@ -28,6 +28,7 @@ from dashboard.components.evasion_matrix import render_evasion_matrix
 from dashboard.components.tone_dynamics import render_tone_dynamics
 from dashboard.components.forensic_chat import render_forensic_chat
 from dashboard.components.peer_comparison import render_peer_comparison
+from dashboard.components.mlops_monitor import render_mlops_monitor
 
 SEMICONDUCTOR_TICKERS = ["NVDA", "AMD", "INTC", "TSM", "ASML", "MRVL", "QCOM"]
 
@@ -69,15 +70,20 @@ def main():
 
         # API Connection Health Badge & Refresh Button
         if client.is_live:
-            st.markdown(badge_html("🟢 API: LIVE (HTTP://LOCALHOST:8000)", "bull"), unsafe_allow_html=True)
+            st.markdown(badge_html(f"🟢 API: LIVE ({client.base_url})", "bull"), unsafe_allow_html=True)
         else:
-            st.markdown(badge_html("🟡 MODE: LOCAL DEMO FALLBACK", "warn"), unsafe_allow_html=True)
+            st.markdown(badge_html(f"🟡 MODE: DEMO FALLBACK", "warn"), unsafe_allow_html=True)
 
         if st.button("🔄 Reconnect Backend", key="btn_reconnect_sidebar", use_container_width=True, help="Click to test live FastAPI server connection"):
-            if client.check_health():
-                st.success("Connected to live FastAPI backend!")
-            else:
-                st.warning("Backend not reachable at http://localhost:8000. Start it with: uvicorn src.api.main:app")
+            with st.spinner("Pinging backend API..."):
+                if client.check_health():
+                    st.success(f"Connected to live FastAPI backend at {client.base_url}!")
+                else:
+                    st.warning(
+                        f"Backend not reachable at {client.base_url}.\n\n"
+                        "Note: Free tier services on Render spin down after 15 minutes of inactivity. "
+                        "Cold starts take ~30–50s to wake up. Click Reconnect again in a few moments!"
+                    )
             st.rerun()
 
         st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
@@ -189,12 +195,13 @@ def main():
     st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
 
     # 2. Main Tab Views
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Signal & SHAP Waterfall",
         "🔍 Evasion & Forensic Audit",
         "📈 Tone Dynamics & Guidance",
         "🤖 AI Forensic Analyst Chat",
         "🌐 Peer Benchmark",
+        "🛡️ MLOps & Drift Monitor",
     ])
 
     with tab1:
@@ -212,6 +219,10 @@ def main():
     with tab5:
         all_calls = client.get_calls()
         render_peer_comparison(all_calls=all_calls)
+
+    with tab6:
+        drift_data = client.get_drift_report()
+        render_mlops_monitor(drift_data=drift_data, api_client=client)
 
 
 if __name__ == "__main__":
