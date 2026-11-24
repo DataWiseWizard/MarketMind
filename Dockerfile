@@ -10,12 +10,14 @@ ENV PYTHONUNBUFFERED=1 \
     API_PORT=10000 \
     API_HOST=0.0.0.0 \
     PYTHONPATH=/app \
-    HOME=/home/user
+    HOME=/home/user \
+    GIT_PYTHON_REFRESH=quiet
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root user with UID 1000 for standard container security

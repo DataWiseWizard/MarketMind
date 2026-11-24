@@ -290,10 +290,15 @@ def run_training(train_years=None, val_years=None, test_years=None, run_name=Non
             if MODEL_PATH.exists():
                 mlflow.log_artifact(str(MODEL_PATH), artifact_path="model_pickle")
 
-            try:
-                mlflow.lightgbm.log_model(model, name="lightgbm_model")
-            except Exception as model_err:
-                logger.warning(f"mlflow.lightgbm.log_model failed ({model_err}), pickled model logged via log_artifact.")
+            # In memory-constrained cloud environments (e.g. Render 512 MB), log the lightweight
+            # pickled model directly to prevent heavy conda environment packaging from consuming RAM
+            if not (os.getenv("RENDER") or os.getenv("SPACE_ID")):
+                try:
+                    mlflow.lightgbm.log_model(model, name="lightgbm_model")
+                except Exception as model_err:
+                    logger.warning(f"mlflow.lightgbm.log_model skipped ({model_err}).")
+            else:
+                logger.debug("Cloud container environment detected: logging lightweight model artifact.")
 
             logger.success(f"MLflow Run logged successfully (Run ID: {run.info.run_id})")
     except Exception as exc:
