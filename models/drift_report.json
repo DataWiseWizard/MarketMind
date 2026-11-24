@@ -1,135 +1,133 @@
 {
-  "timestamp": "2026-11-24T06:12:38.987940+00:00",
-  "overall_status": "CRITICAL",
-  "reference_split": "Years [2023, 2024] (N=47)",
-  "current_split": "Years [2025, 2026] (N=40)",
-  "reference_sample_count": 47,
-  "current_sample_count": 40,
+  "timestamp": "2026-11-24T06:45:53.092370+00:00",
+  "overall_status": "WARNING",
+  "reference_split": "Years [2023, 2024, 2025] (N=70)",
+  "current_split": "Years [2026] (N=17)",
+  "reference_sample_count": 70,
+  "current_sample_count": 17,
   "total_features_evaluated": 13,
-  "critical_features_count": 5,
-  "warning_features_count": 3,
+  "critical_features_count": 1,
+  "warning_features_count": 5,
   "critical_features": [
-    "sent_ceo",
-    "sent_cfo_delta",
-    "evasive_count",
-    "momentum_30d",
-    "volatility_30d"
+    "sent_ceo"
   ],
   "warning_features": [
     "sent_cfo",
-    "sent_analyst",
-    "sent_ceo_delta"
+    "revenue_qoq_pct",
+    "margin_qoq_pp",
+    "momentum_30d",
+    "volatility_30d"
   ],
   "feature_metrics": {
     "sent_ceo": {
-      "psi": 0.2878,
-      "ks_statistic": 0.2016,
-      "ks_pvalue": 0.2908,
+      "psi": 2.0948,
+      "ks_statistic": 0.2714,
+      "ks_pvalue": 0.215,
       "drift_level": "CRITICAL",
-      "ref_mean": 0.1215,
-      "ref_std": 0.19,
-      "cur_mean": 0.0504,
-      "cur_std": 0.1307,
-      "delta_mean": -0.0711
+      "ref_mean": 0.1062,
+      "ref_std": 0.1834,
+      "cur_mean": 0.0171,
+      "cur_std": 0.0382,
+      "delta_mean": -0.0891
     },
     "sent_cfo": {
-      "psi": 0.1793,
-      "ks_statistic": 0.1239,
-      "ks_pvalue": 0.8393,
+      "psi": 0.2069,
+      "ks_statistic": 0.1235,
+      "ks_pvalue": 0.9639,
       "drift_level": "MODERATE",
-      "ref_mean": 0.1942,
-      "ref_std": 0.3049,
-      "cur_mean": 0.1241,
-      "cur_std": 0.2208,
-      "delta_mean": -0.0701
+      "ref_mean": 0.1673,
+      "ref_std": 0.2808,
+      "cur_mean": 0.1401,
+      "cur_std": 0.2296,
+      "delta_mean": -0.0272
     },
     "sent_analyst": {
-      "psi": 0.1477,
-      "ks_statistic": 0.0835,
-      "ks_pvalue": 0.9928,
-      "drift_level": "MODERATE",
-      "ref_mean": 0.0318,
-      "ref_std": 0.0816,
-      "cur_mean": 0.0222,
-      "cur_std": 0.0493,
-      "delta_mean": -0.0096
+      "psi": 0.0706,
+      "ks_statistic": 0.1286,
+      "ks_pvalue": 0.9486,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0297,
+      "ref_std": 0.0745,
+      "cur_mean": 0.0181,
+      "cur_std": 0.0361,
+      "delta_mean": -0.0116
     },
     "sent_ceo_delta": {
-      "psi": 0.1839,
-      "ks_statistic": 0.1415,
-      "ks_pvalue": 0.7096,
-      "drift_level": "MODERATE",
-      "ref_mean": 0.0027,
-      "ref_std": 0.1103,
-      "cur_mean": -0.0114,
-      "cur_std": 0.0815,
-      "delta_mean": -0.0141
+      "psi": 0.0365,
+      "ks_statistic": 0.1571,
+      "ks_pvalue": 0.8246,
+      "drift_level": "STABLE",
+      "ref_mean": -0.0042,
+      "ref_std": 0.1095,
+      "cur_mean": -0.0024,
+      "cur_std": 0.0136,
+      "delta_mean": 0.0018
     },
     "sent_cfo_delta": {
-      "psi": 0.271,
-      "ks_statistic": 0.0835,
-      "ks_pvalue": 0.9928,
-      "drift_level": "CRITICAL",
-      "ref_mean": 0.0148,
-      "ref_std": 0.2632,
-      "cur_mean": 0.0104,
-      "cur_std": 0.2196,
-      "delta_mean": -0.0044
+      "psi": 0.0132,
+      "ks_statistic": 0.1143,
+      "ks_pvalue": 0.9814,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0145,
+      "ref_std": 0.265,
+      "cur_mean": 0.0059,
+      "cur_std": 0.1253,
+      "delta_mean": -0.0086
     },
     "evasion_mean": {
       "psi": 0.0,
-      "ks_statistic": 0.0824,
-      "ks_pvalue": 0.9938,
+      "ks_statistic": 0.0748,
+      "ks_pvalue": 1.0,
       "drift_level": "STABLE",
-      "ref_mean": 0.0156,
-      "ref_std": 0.0375,
-      "cur_mean": 0.0245,
-      "cur_std": 0.0571,
-      "delta_mean": 0.0089
+      "ref_mean": 0.0194,
+      "ref_std": 0.0482,
+      "cur_mean": 0.0209,
+      "cur_std": 0.0457,
+      "delta_mean": 0.0015
     },
     "evasion_max": {
-      "psi": 0.005,
-      "ks_statistic": 0.0824,
-      "ks_pvalue": 0.9938,
+      "psi": 0.0,
+      "ks_statistic": 0.0462,
+      "ks_pvalue": 1.0,
       "drift_level": "STABLE",
-      "ref_mean": 0.0223,
-      "ref_std": 0.0617,
-      "cur_mean": 0.05,
-      "cur_std": 0.126,
-      "delta_mean": 0.0277
+      "ref_mean": 0.0343,
+      "ref_std": 0.0995,
+      "cur_mean": 0.0382,
+      "cur_std": 0.09,
+      "delta_mean": 0.0039
     },
     "evasive_count": {
-      "psi": 0.3124,
-      "ks_statistic": 0.05,
+      "psi": 0.0,
+      "ks_statistic": 0.0286,
       "ks_pvalue": 1.0,
-      "drift_level": "CRITICAL",
-      "ref_mean": 0.0,
-      "ref_std": 0.0,
-      "cur_mean": 0.1,
-      "cur_std": 0.4359,
-      "delta_mean": 0.1
+      "drift_level": "STABLE",
+      "ref_mean": 0.0571,
+      "ref_std": 0.3332,
+      "cur_mean": 0.0,
+      "cur_std": 0.0,
+      "delta_mean": -0.0571
     },
     "revenue_qoq_pct": {
-      "psi": 0.0937,
-      "ks_statistic": 0.1064,
-      "ks_pvalue": 0.9354,
-      "drift_level": "STABLE",
-      "ref_mean": 83.2874,
-      "ref_std": 387.3317,
-      "cur_mean": 15.2002,
-      "cur_std": 61.8992,
-      "delta_mean": -68.0872
+      "psi": 0.1664,
+      "ks_statistic": 0.242,
+      "ks_pvalue": 0.3339,
+      "drift_level": "MODERATE",
+      "ref_mean": 58.4481,
+      "ref_std": 320.5065,
+      "cur_mean": 25.3616,
+      "cur_std": 76.2998,
+      "delta_mean": -33.0865
     },
     "margin_qoq_pp": {
-      "psi": 0.0452,
-      "ks_statistic": 0.0612,
-      "ks_pvalue": 0.9999,
-      "drift_level": "STABLE",
-      "ref_mean": -0.2681,
-      "ref_std": 2.4637,
-      "cur_mean": 0.3013,
-      "cur_std": 3.3529,
-      "delta_mean": 0.5694
+      "psi": 0.1076,
+      "ks_statistic": 0.105,
+      "ks_pvalue": 0.9928,
+      "drift_level": "MODERATE",
+      "ref_mean": -0.0214,
+      "ref_std": 3.1996,
+      "cur_mean": 0.0559,
+      "cur_std": 1.2192,
+      "delta_mean": 0.0773
     },
     "discrepancy_count": {
       "psi": 0.0,
@@ -143,44 +141,44 @@
       "delta_mean": 0.0
     },
     "momentum_30d": {
-      "psi": 1.7289,
-      "ks_statistic": 0.3824,
-      "ks_pvalue": 0.0023,
-      "drift_level": "CRITICAL",
-      "ref_mean": 4.7684,
-      "ref_std": 11.9171,
-      "cur_mean": 14.2418,
-      "cur_std": 20.1168,
-      "delta_mean": 9.4734
+      "psi": 0.2127,
+      "ks_statistic": 0.2227,
+      "ks_pvalue": 0.4375,
+      "drift_level": "MODERATE",
+      "ref_mean": 8.6132,
+      "ref_std": 14.4299,
+      "cur_mean": 11.2273,
+      "cur_std": 24.4139,
+      "delta_mean": 2.6141
     },
     "volatility_30d": {
-      "psi": 1.5185,
-      "ks_statistic": 0.4574,
-      "ks_pvalue": 0.0001,
-      "drift_level": "CRITICAL",
-      "ref_mean": 38.3131,
-      "ref_std": 10.7615,
-      "cur_mean": 54.8966,
-      "cur_std": 21.3416,
-      "delta_mean": 16.5835
+      "psi": 0.2394,
+      "ks_statistic": 0.2706,
+      "ks_pvalue": 0.2191,
+      "drift_level": "MODERATE",
+      "ref_mean": 44.9343,
+      "ref_std": 18.7676,
+      "cur_mean": 50.0697,
+      "cur_std": 16.4282,
+      "delta_mean": 5.1354
     }
   },
   "prediction_drift": {
-    "psi": 0.0981,
-    "drift_level": "STABLE",
+    "psi": 0.1595,
+    "drift_level": "MODERATE",
     "reference_distribution": {
-      "NEGATIVE": 0.3191,
-      "NEUTRAL": 0.3617,
-      "POSITIVE": 0.3191
+      "NEGATIVE": 0.3429,
+      "NEUTRAL": 0.4429,
+      "POSITIVE": 0.2143
     },
     "current_distribution": {
-      "NEGATIVE": 0.35,
-      "NEUTRAL": 0.225,
-      "POSITIVE": 0.425
+      "NEGATIVE": 0.5294,
+      "NEUTRAL": 0.3529,
+      "POSITIVE": 0.1176
     }
   },
   "recommendations": [
-    "Trigger automated walk-forward model retraining: feature and prediction distributions diverge significantly from baseline.",
+    "Monitor drifted features closely over upcoming earnings cycle. Validate whether shift reflects broader semiconductor market regime transition.",
     "Volatility shift detected (macro tech market regime change). Consider adjusting classification decision thresholds."
   ]
 }

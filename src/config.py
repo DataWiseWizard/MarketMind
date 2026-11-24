@@ -6,6 +6,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Suppress GitPython search warnings in containers
+os.environ.setdefault("GIT_PYTHON_REFRESH", "quiet")
+
 # Load environment variables
 load_dotenv()
 
