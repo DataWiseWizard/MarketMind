@@ -259,7 +259,7 @@ class MarketMindClient:
     def get_signal(self, call_id: int) -> dict[str, Any]:
         """Fetch LightGBM prediction and SHAP explainability for a call."""
         try:
-            resp = requests.get(f"{self.base_url}/api/signals/{call_id}", timeout=self.timeout)
+            resp = requests.get(f"{self.base_url}/api/signals/{call_id}", timeout=20.0)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
@@ -289,7 +289,7 @@ class MarketMindClient:
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
-                if data and ("roles" in data or "segments" in data):
+                if data and data.get("segments"):
                     return data
         except Exception as e:
             logger.debug(f"API get_tone failed, using fallback: {e}")
@@ -298,11 +298,11 @@ class MarketMindClient:
     def get_audit(self, call_id: int) -> dict[str, Any]:
         """Fetch forensic audit findings and discrepancy alerts."""
         try:
-            resp = requests.get(f"{self.base_url}/api/agent/audit/{call_id}", timeout=25.0)
+            resp = requests.get(f"{self.base_url}/api/agent/audit/{call_id}", timeout=20.0)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
-                if data:
+                if data and not data.get("error"):
                     return data
         except Exception as e:
             logger.debug(f"API get_audit failed, using fallback: {e}")
@@ -325,26 +325,28 @@ class MarketMindClient:
         """Submit question to AI Forensic Agent with generous timeout for RAG + LLM."""
         try:
             payload = {"question": question, "use_rag": use_rag}
-            resp = requests.post(f"{self.base_url}/api/agent/chat/{call_id}", json=payload, timeout=60.0)
+            resp = requests.post(f"{self.base_url}/api/agent/chat/{call_id}", json=payload, timeout=25.0)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
-                # Normalize 'sources' to 'citations' if needed
-                if "sources" in data and not data.get("citations"):
-                    normalized = []
-                    for s in data["sources"]:
-                        meta = s.get("metadata", {})
-                        doc_type = meta.get("doc_type", "TRANSCRIPT").upper()
-                        speaker = meta.get("speaker_role", "Verified Source")
-                        label = f"[{meta.get('ticker', '')} {meta.get('quarter', '')} {doc_type}]"
-                        normalized.append({
-                            "source": doc_type,
-                            "speaker": speaker,
-                            "citation": label,
-                            "text": s.get("text", "")[:300],
-                        })
-                    data["citations"] = normalized
-                return data
+                ans = data.get("answer", "")
+                if ans and "No data found for call_id" not in ans:
+                    # Normalize 'sources' to 'citations' if needed
+                    if "sources" in data and not data.get("citations"):
+                        normalized = []
+                        for s in data["sources"]:
+                            meta = s.get("metadata", {})
+                            doc_type = meta.get("doc_type", "TRANSCRIPT").upper()
+                            speaker = meta.get("speaker_role", "Verified Source")
+                            label = f"[{meta.get('ticker', '')} {meta.get('quarter', '')} {doc_type}]"
+                            normalized.append({
+                                "source": doc_type,
+                                "speaker": speaker,
+                                "citation": label,
+                                "text": s.get("text", "")[:300],
+                            })
+                        data["citations"] = normalized
+                    return data
         except Exception as e:
             logger.warning(f"API chat failed, using smart dynamic responder: {e}")
 
