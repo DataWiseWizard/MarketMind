@@ -5,6 +5,7 @@ Used when the FastAPI server is not currently running.
 """
 
 from __future__ import annotations
+import datetime
 from typing import Any
 
 SEMICONDUCTOR_COMPANIES: list[dict[str, Any]] = [
@@ -356,5 +357,47 @@ def get_mock_drift_data() -> dict[str, Any]:
         "recommendations": [
             "Trigger automated walk-forward model retraining: feature and prediction distributions diverge significantly from baseline.",
             "Volatility shift detected (macro tech market regime change). Consider adjusting classification decision thresholds.",
+        ],
+    }
+
+
+def get_mock_retrained_drift_data() -> dict[str, Any]:
+    """Returns post-retraining metrics on 2023-2025 window showing restored stability."""
+    return {
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "overall_status": "HEALTHY",
+        "reference_split": "Years [2023, 2024, 2025] (N=87)",
+        "current_split": "Years [2026] (N=16)",
+        "reference_sample_count": 87,
+        "current_sample_count": 16,
+        "total_features_evaluated": 13,
+        "critical_features_count": 0,
+        "warning_features_count": 1,
+        "critical_features": [],
+        "warning_features": ["volatility_30d"],
+        "feature_metrics": {
+            "volatility_30d": {"psi": 0.118, "ks_statistic": 0.155, "ks_pvalue": 0.5200, "drift_level": "MODERATE", "ref_mean": 0.342, "ref_std": 0.098, "cur_mean": 0.375, "cur_std": 0.101, "delta_mean": 0.033},
+            "momentum_30d": {"psi": 0.065, "ks_statistic": 0.108, "ks_pvalue": 0.8100, "drift_level": "STABLE", "ref_mean": 0.082, "ref_std": 0.135, "cur_mean": 0.091, "cur_std": 0.138, "delta_mean": 0.009},
+            "revenue_qoq_pct": {"psi": 0.051, "ks_statistic": 0.092, "ks_pvalue": 0.8600, "drift_level": "STABLE", "ref_mean": 0.095, "ref_std": 0.110, "cur_mean": 0.105, "cur_std": 0.112, "delta_mean": 0.010},
+            "sent_ceo_delta": {"psi": 0.046, "ks_statistic": 0.084, "ks_pvalue": 0.9000, "drift_level": "STABLE", "ref_mean": 0.024, "ref_std": 0.125, "cur_mean": 0.032, "cur_std": 0.119, "delta_mean": 0.008},
+            "evasive_count": {"psi": 0.042, "ks_statistic": 0.081, "ks_pvalue": 0.9200, "drift_level": "STABLE", "ref_mean": 1.78, "ref_std": 1.25, "cur_mean": 1.88, "cur_std": 1.28, "delta_mean": 0.10},
+            "sent_ceo": {"psi": 0.036, "ks_statistic": 0.072, "ks_pvalue": 0.9500, "drift_level": "STABLE", "ref_mean": 0.085, "ref_std": 0.160, "cur_mean": 0.079, "cur_std": 0.152, "delta_mean": -0.006},
+            "sent_analyst": {"psi": 0.031, "ks_statistic": 0.065, "ks_pvalue": 0.9700, "drift_level": "STABLE", "ref_mean": 0.038, "ref_std": 0.155, "cur_mean": 0.034, "cur_std": 0.150, "delta_mean": -0.004},
+            "sent_cfo": {"psi": 0.029, "ks_statistic": 0.062, "ks_pvalue": 0.9750, "drift_level": "STABLE", "ref_mean": 0.155, "ref_std": 0.260, "cur_mean": 0.150, "cur_std": 0.252, "delta_mean": -0.005},
+            "evasion_mean": {"psi": 0.024, "ks_statistic": 0.052, "ks_pvalue": 0.9880, "drift_level": "STABLE", "ref_mean": 0.39, "ref_std": 0.14, "cur_mean": 0.40, "cur_std": 0.14, "delta_mean": 0.01},
+            "evasion_max": {"psi": 0.021, "ks_statistic": 0.048, "ks_pvalue": 0.9920, "drift_level": "STABLE", "ref_mean": 0.73, "ref_std": 0.18, "cur_mean": 0.74, "cur_std": 0.18, "delta_mean": 0.01},
+            "sent_cfo_delta": {"psi": 0.017, "ks_statistic": 0.042, "ks_pvalue": 0.9960, "drift_level": "STABLE", "ref_mean": 0.015, "ref_std": 0.105, "cur_mean": 0.013, "cur_std": 0.102, "delta_mean": -0.002},
+            "margin_qoq_pp": {"psi": 0.014, "ks_statistic": 0.038, "ks_pvalue": 0.9985, "drift_level": "STABLE", "ref_mean": 0.42, "ref_std": 1.18, "cur_mean": 0.41, "cur_std": 1.16, "delta_mean": -0.01},
+            "discrepancy_count": {"psi": 0.000, "ks_statistic": 0.000, "ks_pvalue": 1.0000, "drift_level": "STABLE", "ref_mean": 0.0, "ref_std": 0.0, "cur_mean": 0.0, "cur_std": 0.0, "delta_mean": 0.0},
+        },
+        "prediction_drift": {
+            "psi": 0.0341,
+            "drift_level": "STABLE",
+            "reference_distribution": {"NEGATIVE": 0.3218, "NEUTRAL": 0.3103, "POSITIVE": 0.3678},
+            "current_distribution": {"NEGATIVE": 0.3125, "NEUTRAL": 0.3125, "POSITIVE": 0.3750},
+        },
+        "recommendations": [
+            "Model successfully adapted to walk-forward regime. Population Stability Index (PSI) normalized below 0.10 across 12 of 13 features.",
+            "Prediction distributions aligned with serving reality. Retraining routine logged to MLflow registry.",
         ],
     }

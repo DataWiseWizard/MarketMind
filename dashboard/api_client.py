@@ -20,6 +20,7 @@ from dashboard.utils.mock_data import (
     get_mock_audit_findings,
     get_mock_metrics_data,
     get_mock_drift_data,
+    get_mock_retrained_drift_data,
 )
 
 # Detect API URL from Streamlit secrets (Cloud) or environment variable (Local)
@@ -381,8 +382,9 @@ class MarketMindClient:
                 self._is_live = True
                 return resp.json()
         except Exception as e:
-            logger.debug(f"API recalculate_drift failed, running local engine: {e}")
+            logger.debug(f"API recalculate_drift failed: {e}")
 
+        # Local fallback execution
         try:
             from src.models.monitoring import DriftMonitor
             monitor = DriftMonitor()
@@ -390,6 +392,9 @@ class MarketMindClient:
             monitor.save_reports(report)
             monitor.log_to_mlflow(report)
             return report
+        except (ImportError, ModuleNotFoundError) as mod_err:
+            logger.info(f"Local DriftMonitor not available in client environment: {mod_err}")
+            return get_mock_drift_data()
         except Exception as exc:
             logger.warning(f"Local drift recalculation failed: {exc}")
             return get_mock_drift_data()
@@ -399,39 +404,69 @@ class MarketMindClient:
         if train_years is None:
             train_years = [2023, 2024, 2025]
         try:
-            resp = requests.post(f"{self.base_url}/api/monitoring/retrain", json={"train_years": train_years}, timeout=60.0)
+            resp = requests.post(
+                f"{self.base_url}/api/monitoring/retrain",
+                json={"train_years": train_years},
+                timeout=90.0,
+            )
             if resp.status_code == 200:
                 self._is_live = True
                 return resp.json()
         except Exception as e:
-            logger.debug(f"API retrain_model failed, running local trainer: {e}")
+            logger.debug(f"API retrain_model failed: {e}")
 
-        # Local fallback execution
-        from src.models.trainer import run_training
-        from src.models.monitoring import DriftMonitor
+        # Local fallback execution (only if ML dependencies are installed)
+        try:
+            from src.models.trainer import run_training
+            from src.models.monitoring import DriftMonitor
 
-        cur_years = [2026] if 2025 in train_years else [2025, 2026]
-        val_years = [2025] if 2025 not in train_years else [2024]
-        run_name = f"walk_forward_expanding_{'_'.join(map(str, train_years))}"
+            cur_years = [2026] if 2025 in train_years else [2025, 2026]
+            val_years = [2025] if 2025 not in train_years else [2024]
+            run_name = f"walk_forward_expanding_{'_'.join(map(str, train_years))}"
 
-        _, _, metrics = run_training(
-            train_years=train_years,
-            val_years=val_years,
-            test_years=cur_years,
-            run_name=run_name,
-        )
+            _, _, metrics = run_training(
+                train_years=train_years,
+                val_years=val_years,
+                test_years=cur_years,
+                run_name=run_name,
+            )
 
-        monitor = DriftMonitor()
-        drift_report = monitor.run_drift_analysis(ref_years=train_years, cur_years=cur_years)
-        monitor.save_reports(drift_report)
-        monitor.log_to_mlflow(drift_report)
+            monitor = DriftMonitor()
+            drift_report = monitor.run_drift_analysis(ref_years=train_years, cur_years=cur_years)
+            monitor.save_reports(drift_report)
+            monitor.log_to_mlflow(drift_report)
 
-        return {
-            "status": "success",
-            "train_years": train_years,
-            "metrics": metrics,
-            "drift_report": drift_report,
-        }
+            return {
+                "status": "success",
+                "message": f"Model successfully retrained on years {train_years}.",
+                "train_years": train_years,
+                "metrics": metrics,
+                "drift_report": drift_report,
+            }
+        except (ImportError, ModuleNotFoundError) as mod_err:
+            logger.info(f"Local ML trainer not installed in client environment: {mod_err}")
+            # Provide high-fidelity simulated retrained drift report for frontend demo mode
+            if 2025 in train_years:
+                simulated_report = get_mock_retrained_drift_data()
+            else:
+                simulated_report = get_mock_drift_data()
+
+            return {
+                "status": "demo_simulated",
+                "message": (
+                    f"Backend at {self.base_url} is not connected. "
+                    f"Simulated walk-forward retraining on {train_years} for dashboard demonstration."
+                ),
+                "train_years": train_years,
+                "drift_report": simulated_report,
+            }
+        except Exception as exc:
+            logger.warning(f"Local retraining failed: {exc}")
+            return {
+                "status": "error",
+                "message": str(exc),
+                "drift_report": get_mock_drift_data(),
+            }
 
 
 @st.cache_resource
