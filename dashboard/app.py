@@ -74,7 +74,7 @@ def main():
         else:
             st.markdown(badge_html(f"🟡 MODE: DEMO FALLBACK", "warn"), unsafe_allow_html=True)
 
-        if st.button("🔄 Reconnect Backend", key="btn_reconnect_sidebar", use_container_width=True, help="Click to test live FastAPI server connection"):
+        if st.button("🔄 Reconnect Backend", key="btn_reconnect_sidebar", help="Click to test live FastAPI server connection"):
             with st.spinner("Pinging backend API..."):
                 if client.check_health():
                     st.success(f"Connected to live FastAPI backend at {client.base_url}!")

@@ -66,7 +66,7 @@ def render_forensic_chat(call_id: int, api_client: Any) -> None:
 
     for i, p in enumerate(PRESET_PROMPTS):
         with chip_cols[i]:
-            if st.button(p, key=f"chip_{call_id}_{i}", use_container_width=True):
+            if st.button(p, key=f"chip_{call_id}_{i}"):
                 selected_prompt = p
 
     # Render Chat History

@@ -33,6 +33,28 @@ from src.reporting.report_generator import ReportGenerator
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_database()
+    # Seed tracked semiconductor companies if database is fresh
+    session = get_session()
+    try:
+        if session.query(Company).count() == 0:
+            seed_companies = [
+                Company(ticker="NVDA", company_name="NVIDIA Corporation", sector="Semiconductors", exchange="NASDAQ"),
+                Company(ticker="AMD", company_name="Advanced Micro Devices, Inc.", sector="Semiconductors", exchange="NASDAQ"),
+                Company(ticker="INTC", company_name="Intel Corporation", sector="Semiconductors", exchange="NASDAQ"),
+                Company(ticker="TSM", company_name="Taiwan Semiconductor Manufacturing", sector="Foundry", exchange="NYSE"),
+                Company(ticker="ASML", company_name="ASML Holding N.V.", sector="Lithography Equipment", exchange="NASDAQ"),
+                Company(ticker="MRVL", company_name="Marvell Technology, Inc.", sector="Data Infrastructure", exchange="NASDAQ"),
+                Company(ticker="QCOM", company_name="Qualcomm Incorporated", sector="Wireless / Edge AI", exchange="NASDAQ"),
+            ]
+            session.add_all(seed_companies)
+            session.commit()
+            logger.info("Auto-seeded 7 semiconductor companies into database.")
+    except Exception as e:
+        logger.warning(f"Company seeding skipped: {e}")
+        session.rollback()
+    finally:
+        session.close()
+
     logger.info("MarketMind API started. Database ready.")
     yield
 
