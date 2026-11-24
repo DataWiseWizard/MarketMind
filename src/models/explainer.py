@@ -29,8 +29,17 @@ if str(PROJECT_ROOT) not in sys.path:
 MODEL_PATH  = PROJECT_ROOT / "models" / "lightgbm_marketmind_v1.pkl"
 FEAT_PATH   = PROJECT_ROOT / "models" / "feature_columns.json"
 
+_CACHED_MODEL = None
+_CACHED_FEATURES = None
+_CACHED_LABEL_MAP = None
+_CACHED_EXPLAINER = None
+
 
 def _load_model():
+    global _CACHED_MODEL, _CACHED_FEATURES, _CACHED_LABEL_MAP
+    if _CACHED_MODEL is not None:
+        return _CACHED_MODEL, _CACHED_FEATURES, _CACHED_LABEL_MAP
+
     if not MODEL_PATH.exists():
         raise FileNotFoundError(
             f"Model not found at {MODEL_PATH}. "
@@ -38,7 +47,23 @@ def _load_model():
         )
     with open(MODEL_PATH, "rb") as f:
         payload = pickle.load(f)
-    return payload["model"], payload["features"], payload["label_map"]
+    _CACHED_MODEL = payload["model"]
+    _CACHED_FEATURES = payload["features"]
+    _CACHED_LABEL_MAP = payload["label_map"]
+    return _CACHED_MODEL, _CACHED_FEATURES, _CACHED_LABEL_MAP
+
+
+def warm_up_explainer():
+    """Pre-load model and TreeExplainer into memory for sub-millisecond predictions."""
+    global _CACHED_EXPLAINER
+    try:
+        model, features, label_map = _load_model()
+        import shap
+        if _CACHED_EXPLAINER is None:
+            _CACHED_EXPLAINER = shap.TreeExplainer(model)
+        logger.info("SHAP explainer warmed up and ready in memory.")
+    except Exception as e:
+        logger.debug(f"SHAP explainer warm-up skipped: {e}")
 
 
 def predict_with_shap(feature_dict: dict) -> dict:
@@ -56,6 +81,7 @@ def predict_with_shap(feature_dict: dict) -> dict:
           "confidence":      0.72
         }
     """
+    global _CACHED_EXPLAINER
     try:
         import shap
     except ImportError:
@@ -76,9 +102,10 @@ def predict_with_shap(feature_dict: dict) -> dict:
 
     proba_dict = {label_remap[i]: round(float(p), 4) for i, p in enumerate(proba)}
 
-    # SHAP — TreeExplainer
-    explainer  = shap.TreeExplainer(model)
-    shap_vals  = explainer.shap_values(X_df)
+    # SHAP — cached TreeExplainer
+    if _CACHED_EXPLAINER is None:
+        _CACHED_EXPLAINER = shap.TreeExplainer(model)
+    shap_vals = _CACHED_EXPLAINER.shap_values(X_df)
 
     # For multiclass: shap_vals can be array of shape (n_samples, n_features, n_classes) or list
     if isinstance(shap_vals, np.ndarray):
