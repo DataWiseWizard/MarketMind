@@ -220,9 +220,8 @@ class MarketMindClient:
         return False
 
     @property
-    def is_live(self) -> bool:
-        """Dynamically probes health so server startup is immediately recognized."""
-        return self.check_health()
+    def is_live(self) -> bool:  
+        return self._is_live
 
     def get_companies(self) -> list[dict[str, Any]]:
         """Fetch list of tracked semiconductor companies."""

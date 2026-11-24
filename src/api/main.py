@@ -79,6 +79,15 @@ def get_pipeline() -> MarketMindPipeline:
         _pipeline_runner = MarketMindPipeline()
     return _pipeline_runner
 
+_agent_cache: Dict[bool, Any] = {}
+
+
+def get_agent(use_rag: bool = True):
+    if use_rag not in _agent_cache:
+        from src.rag.agent import MarketMindAgent
+        _agent_cache[use_rag] = MarketMindAgent(use_rag=use_rag)
+    return _agent_cache[use_rag]
+
 report_gen = ReportGenerator()
 
 
@@ -130,7 +139,7 @@ class EvasionResponse(BaseModel):
 
 # ---- API Endpoints ----
 
-@app.get("/health", tags=["System"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["System"])
 def health_check():
     return {
         "status": "healthy",
@@ -420,8 +429,7 @@ def agent_chat(call_id: int, body: ChatRequest):
     Returns AI answer grounded in transcript + 10-Q context.
     """
     try:
-        from src.rag.agent import MarketMindAgent
-        agent = MarketMindAgent(use_rag=body.use_rag)
+        agent = get_agent(use_rag=body.use_rag)
         result = agent.chat(call_id=call_id, question=body.question)
         return result
     except Exception as e:
@@ -436,8 +444,7 @@ def agent_audit(call_id: int, use_rag: bool = True):
     Finds discrepancies, peer dissonance, and accountability gaps.
     """
     try:
-        from src.rag.agent import MarketMindAgent
-        agent = MarketMindAgent(use_rag=use_rag)
+        agent = get_agent(use_rag=use_rag)
         result = agent.run_forensic_audit(call_id=call_id)
         if result and not result.get("error"):
             return result
