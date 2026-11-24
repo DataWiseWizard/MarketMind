@@ -28,6 +28,7 @@ from dashboard.components.evasion_matrix import render_evasion_matrix
 from dashboard.components.tone_dynamics import render_tone_dynamics
 from dashboard.components.forensic_chat import render_forensic_chat
 from dashboard.components.peer_comparison import render_peer_comparison
+from dashboard.components.mlops_monitor import render_mlops_monitor
 
 SEMICONDUCTOR_TICKERS = ["NVDA", "AMD", "INTC", "TSM", "ASML", "MRVL", "QCOM"]
 
@@ -189,12 +190,13 @@ def main():
     st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
 
     # 2. Main Tab Views
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Signal & SHAP Waterfall",
         "🔍 Evasion & Forensic Audit",
         "📈 Tone Dynamics & Guidance",
         "🤖 AI Forensic Analyst Chat",
         "🌐 Peer Benchmark",
+        "🛡️ MLOps & Drift Monitor",
     ])
 
     with tab1:
@@ -212,6 +214,10 @@ def main():
     with tab5:
         all_calls = client.get_calls()
         render_peer_comparison(all_calls=all_calls)
+
+    with tab6:
+        drift_data = client.get_drift_report()
+        render_mlops_monitor(drift_data=drift_data, api_client=client)
 
 
 if __name__ == "__main__":

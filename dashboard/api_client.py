@@ -19,6 +19,7 @@ from dashboard.utils.mock_data import (
     get_mock_tone_data,
     get_mock_audit_findings,
     get_mock_metrics_data,
+    get_mock_drift_data,
 )
 
 DEFAULT_API_URL = os.getenv("MARKETMIND_API_URL", "http://localhost:8000")
@@ -342,6 +343,89 @@ class MarketMindClient:
 
         # Intelligent question-aware fallback response with grounded citations
         return generate_smart_fallback_response(question, call_id)
+
+    def get_drift_report(self) -> dict[str, Any]:
+        """Fetch model & feature drift monitoring report."""
+        try:
+            resp = requests.get(f"{self.base_url}/api/monitoring/drift", timeout=self.timeout)
+            if resp.status_code == 200:
+                self._is_live = True
+                return resp.json()
+        except Exception as e:
+            logger.debug(f"API get_drift_report failed, checking local file or mock: {e}")
+
+        # Direct file fallback if file exists on disk
+        import json
+        from pathlib import Path
+        local_report = Path(__file__).resolve().parent.parent / "models" / "drift_report.json"
+        if local_report.exists():
+            try:
+                with open(local_report) as f:
+                    return json.load(f)
+            except Exception:
+                pass
+
+        return get_mock_drift_data()
+
+    def recalculate_drift(self) -> dict[str, Any]:
+        """Trigger an on-demand drift recalculation via API or local engine."""
+        try:
+            resp = requests.post(f"{self.base_url}/api/monitoring/drift/recalculate", timeout=30.0)
+            if resp.status_code == 200:
+                self._is_live = True
+                return resp.json()
+        except Exception as e:
+            logger.debug(f"API recalculate_drift failed, running local engine: {e}")
+
+        try:
+            from src.models.monitoring import DriftMonitor
+            monitor = DriftMonitor()
+            report = monitor.run_drift_analysis()
+            monitor.save_reports(report)
+            monitor.log_to_mlflow(report)
+            return report
+        except Exception as exc:
+            logger.warning(f"Local drift recalculation failed: {exc}")
+            return get_mock_drift_data()
+
+    def retrain_model(self, train_years: list[int] = None) -> dict[str, Any]:
+        """Trigger walk-forward retraining on expanded historical window."""
+        if train_years is None:
+            train_years = [2023, 2024, 2025]
+        try:
+            resp = requests.post(f"{self.base_url}/api/monitoring/retrain", json={"train_years": train_years}, timeout=60.0)
+            if resp.status_code == 200:
+                self._is_live = True
+                return resp.json()
+        except Exception as e:
+            logger.debug(f"API retrain_model failed, running local trainer: {e}")
+
+        # Local fallback execution
+        from src.models.trainer import run_training
+        from src.models.monitoring import DriftMonitor
+
+        cur_years = [2026] if 2025 in train_years else [2025, 2026]
+        val_years = [2025] if 2025 not in train_years else [2024]
+        run_name = f"walk_forward_expanding_{'_'.join(map(str, train_years))}"
+
+        _, _, metrics = run_training(
+            train_years=train_years,
+            val_years=val_years,
+            test_years=cur_years,
+            run_name=run_name,
+        )
+
+        monitor = DriftMonitor()
+        drift_report = monitor.run_drift_analysis(ref_years=train_years, cur_years=cur_years)
+        monitor.save_reports(drift_report)
+        monitor.log_to_mlflow(drift_report)
+
+        return {
+            "status": "success",
+            "train_years": train_years,
+            "metrics": metrics,
+            "drift_report": drift_report,
+        }
 
 
 @st.cache_resource

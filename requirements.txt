@@ -52,6 +52,9 @@ google-genai>=0.1.0
 # ---- Testing ----
 pytest==8.4.0
 
+# ---- MLOps & Tracking ----
+mlflow>=2.22.0
+
 # ---- Utilities ----
 loguru==0.7.3
 tqdm==4.67.1

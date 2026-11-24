@@ -26,4 +26,4 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Host "`n[SUCCESS] All 25 checks passed! Safe to commit and push." -ForegroundColor Green
+Write-Host "`n[SUCCESS] All checks passed! Safe to commit and push." -ForegroundColor Green

@@ -513,6 +513,104 @@ def list_predictions():
         session.close()
 
 
+# ---- Monitoring & MLOps Endpoints ----
+
+@app.get("/api/monitoring/drift", tags=["Monitoring"])
+def get_drift_report():
+    """Return latest feature and prediction drift monitoring report."""
+    report_path = PROJECT_ROOT / "models" / "drift_report.json"
+    if report_path.exists():
+        import json
+        try:
+            with open(report_path) as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Error reading drift_report.json: {e}")
+
+    try:
+        from src.models.monitoring import DriftMonitor
+        monitor = DriftMonitor()
+        report = monitor.run_drift_analysis()
+        monitor.save_reports(report)
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate drift report: {e}")
+
+
+@app.post("/api/monitoring/drift/recalculate", tags=["Monitoring"])
+def recalculate_drift():
+    """Trigger an on-demand calculation of feature and prediction drift."""
+    try:
+        from src.models.monitoring import DriftMonitor
+        monitor = DriftMonitor()
+        report = monitor.run_drift_analysis()
+        monitor.save_reports(report)
+        monitor.log_to_mlflow(report)
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Recalculation failed: {e}")
+
+
+class RetrainRequest(BaseModel):
+    train_years: Optional[List[int]] = None
+
+
+@app.post("/api/monitoring/retrain", tags=["Monitoring"])
+def trigger_retraining(req: Optional[RetrainRequest] = None):
+    """
+    Triggers walk-forward retraining on an expanded historical window
+    (default: [2023, 2024, 2025]), updates the model artifacts, logs to MLflow,
+    and recalculates feature and prediction drift.
+    """
+    try:
+        from src.models.trainer import run_training
+        from src.models.monitoring import DriftMonitor
+
+        train_years = req.train_years if req and req.train_years else [2023, 2024, 2025]
+
+        cur_years = [2026] if 2025 in train_years else [2025, 2026]
+        val_years = [2025] if 2025 not in train_years else [2024]
+        run_name = f"walk_forward_expanding_{'_'.join(map(str, train_years))}"
+
+        model, features, metrics = run_training(
+            train_years=train_years,
+            val_years=val_years,
+            test_years=cur_years,
+            run_name=run_name,
+        )
+
+        monitor = DriftMonitor()
+        drift_report = monitor.run_drift_analysis(ref_years=train_years, cur_years=cur_years)
+        monitor.save_reports(drift_report)
+        monitor.log_to_mlflow(drift_report)
+
+        return {
+            "status": "success",
+            "message": f"Model successfully retrained on years {train_years}.",
+            "train_years": train_years,
+            "test_years": cur_years,
+            "metrics": metrics,
+            "drift_report": drift_report,
+        }
+    except Exception as e:
+        logger.error(f"Retraining failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Retraining failed: {e}")
+
+
+@app.get("/api/monitoring/mlflow", tags=["Monitoring"])
+def get_mlflow_info():
+    """Return local MLflow tracking registry status and active model artifact paths."""
+    import os
+    mlflow_db = PROJECT_ROOT / "mlflow.db"
+    return {
+        "tracking_uri": os.getenv("MLFLOW_TRACKING_URI", f"sqlite:///{mlflow_db.as_posix()}"),
+        "experiment_name": "marketmind",
+        "database_exists": mlflow_db.exists(),
+        "model_artifact": str(PROJECT_ROOT / "models" / "lightgbm_marketmind_v1.pkl"),
+        "model_exists": (PROJECT_ROOT / "models" / "lightgbm_marketmind_v1.pkl").exists(),
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("src.api.main:app", host=API_HOST, port=API_PORT, reload=DEBUG)

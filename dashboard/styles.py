@@ -32,6 +32,12 @@ TOKENS: dict[str, str] = {
     "bear_muted": "rgba(244, 63, 94, 0.14)",
     "warn_primary": "#F59E0B",       # Amber Warning
     "warn_muted": "rgba(245, 158, 11, 0.14)",
+    # Convenience Aliases
+    "bull": "#10B981",
+    "bear": "#F43F5E",
+    "warn": "#F59E0B",
+    "border": "#1E293B",
+    "bg_card": "#0D121A",
 }
 
 
@@ -114,6 +120,16 @@ def inject_design_system_css() -> None:
         border-radius: 8px;
         padding: 14px 16px;
         margin-bottom: 12px;
+      }}
+
+      .mm-card-title {{
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }}
 
       /* KPI Cards */
@@ -278,3 +294,9 @@ def kpi_card_html(label: str, value: str, sub: str, tone: str = "info") -> str:
       <div class="mm-kpi-sub">{sub}</div>
     </div>
     """
+
+
+def card_container(content: str, elevated: bool = False) -> str:
+    """Wraps HTML content inside an institutional styled card."""
+    cls = "mm-card-elevated" if elevated else "mm-card"
+    return f'<div class="{cls}">{content}</div>'

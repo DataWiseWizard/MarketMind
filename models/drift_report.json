@@ -1,0 +1,186 @@
+{
+  "timestamp": "2026-11-24T04:40:07.973293+00:00",
+  "overall_status": "CRITICAL",
+  "reference_split": "Years [2023, 2024] (N=47)",
+  "current_split": "Years [2025, 2026] (N=40)",
+  "reference_sample_count": 47,
+  "current_sample_count": 40,
+  "total_features_evaluated": 13,
+  "critical_features_count": 5,
+  "warning_features_count": 3,
+  "critical_features": [
+    "sent_ceo",
+    "sent_cfo_delta",
+    "evasive_count",
+    "momentum_30d",
+    "volatility_30d"
+  ],
+  "warning_features": [
+    "sent_cfo",
+    "sent_analyst",
+    "sent_ceo_delta"
+  ],
+  "feature_metrics": {
+    "sent_ceo": {
+      "psi": 0.2878,
+      "ks_statistic": 0.2016,
+      "ks_pvalue": 0.2908,
+      "drift_level": "CRITICAL",
+      "ref_mean": 0.1215,
+      "ref_std": 0.19,
+      "cur_mean": 0.0504,
+      "cur_std": 0.1307,
+      "delta_mean": -0.0711
+    },
+    "sent_cfo": {
+      "psi": 0.1793,
+      "ks_statistic": 0.1239,
+      "ks_pvalue": 0.8393,
+      "drift_level": "MODERATE",
+      "ref_mean": 0.1942,
+      "ref_std": 0.3049,
+      "cur_mean": 0.1241,
+      "cur_std": 0.2208,
+      "delta_mean": -0.0701
+    },
+    "sent_analyst": {
+      "psi": 0.1477,
+      "ks_statistic": 0.0835,
+      "ks_pvalue": 0.9928,
+      "drift_level": "MODERATE",
+      "ref_mean": 0.0318,
+      "ref_std": 0.0816,
+      "cur_mean": 0.0222,
+      "cur_std": 0.0493,
+      "delta_mean": -0.0096
+    },
+    "sent_ceo_delta": {
+      "psi": 0.1839,
+      "ks_statistic": 0.1415,
+      "ks_pvalue": 0.7096,
+      "drift_level": "MODERATE",
+      "ref_mean": 0.0027,
+      "ref_std": 0.1103,
+      "cur_mean": -0.0114,
+      "cur_std": 0.0815,
+      "delta_mean": -0.0141
+    },
+    "sent_cfo_delta": {
+      "psi": 0.271,
+      "ks_statistic": 0.0835,
+      "ks_pvalue": 0.9928,
+      "drift_level": "CRITICAL",
+      "ref_mean": 0.0148,
+      "ref_std": 0.2632,
+      "cur_mean": 0.0104,
+      "cur_std": 0.2196,
+      "delta_mean": -0.0044
+    },
+    "evasion_mean": {
+      "psi": 0.0,
+      "ks_statistic": 0.0824,
+      "ks_pvalue": 0.9938,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0156,
+      "ref_std": 0.0375,
+      "cur_mean": 0.0245,
+      "cur_std": 0.0571,
+      "delta_mean": 0.0089
+    },
+    "evasion_max": {
+      "psi": 0.005,
+      "ks_statistic": 0.0824,
+      "ks_pvalue": 0.9938,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0223,
+      "ref_std": 0.0617,
+      "cur_mean": 0.05,
+      "cur_std": 0.126,
+      "delta_mean": 0.0277
+    },
+    "evasive_count": {
+      "psi": 0.3124,
+      "ks_statistic": 0.05,
+      "ks_pvalue": 1.0,
+      "drift_level": "CRITICAL",
+      "ref_mean": 0.0,
+      "ref_std": 0.0,
+      "cur_mean": 0.1,
+      "cur_std": 0.4359,
+      "delta_mean": 0.1
+    },
+    "revenue_qoq_pct": {
+      "psi": 0.0937,
+      "ks_statistic": 0.1064,
+      "ks_pvalue": 0.9354,
+      "drift_level": "STABLE",
+      "ref_mean": 83.2874,
+      "ref_std": 387.3317,
+      "cur_mean": 15.2002,
+      "cur_std": 61.8992,
+      "delta_mean": -68.0872
+    },
+    "margin_qoq_pp": {
+      "psi": 0.0452,
+      "ks_statistic": 0.0612,
+      "ks_pvalue": 0.9999,
+      "drift_level": "STABLE",
+      "ref_mean": -0.2681,
+      "ref_std": 2.4637,
+      "cur_mean": 0.3013,
+      "cur_std": 3.3529,
+      "delta_mean": 0.5694
+    },
+    "discrepancy_count": {
+      "psi": 0.0,
+      "ks_statistic": 0.0,
+      "ks_pvalue": 1.0,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0,
+      "ref_std": 0.0,
+      "cur_mean": 0.0,
+      "cur_std": 0.0,
+      "delta_mean": 0.0
+    },
+    "momentum_30d": {
+      "psi": 1.7289,
+      "ks_statistic": 0.3824,
+      "ks_pvalue": 0.0023,
+      "drift_level": "CRITICAL",
+      "ref_mean": 4.7684,
+      "ref_std": 11.9171,
+      "cur_mean": 14.2418,
+      "cur_std": 20.1168,
+      "delta_mean": 9.4734
+    },
+    "volatility_30d": {
+      "psi": 1.5185,
+      "ks_statistic": 0.4574,
+      "ks_pvalue": 0.0001,
+      "drift_level": "CRITICAL",
+      "ref_mean": 38.3131,
+      "ref_std": 10.7615,
+      "cur_mean": 54.8966,
+      "cur_std": 21.3416,
+      "delta_mean": 16.5835
+    }
+  },
+  "prediction_drift": {
+    "psi": 0.0981,
+    "drift_level": "STABLE",
+    "reference_distribution": {
+      "NEGATIVE": 0.3191,
+      "NEUTRAL": 0.3617,
+      "POSITIVE": 0.3191
+    },
+    "current_distribution": {
+      "NEGATIVE": 0.35,
+      "NEUTRAL": 0.225,
+      "POSITIVE": 0.425
+    }
+  },
+  "recommendations": [
+    "Trigger automated walk-forward model retraining: feature and prediction distributions diverge significantly from baseline.",
+    "Volatility shift detected (macro tech market regime change). Consider adjusting classification decision thresholds."
+  ]
+}

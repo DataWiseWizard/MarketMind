@@ -3,6 +3,7 @@ Tests for FastAPI REST Endpoints
 """
 
 import unittest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from src.api.main import app
 
@@ -94,6 +95,39 @@ class TestMarketMindAPI(unittest.TestCase):
             self.assertIn("shap", data)
         else:
             self.assertEqual(resp.status_code, 404)
+
+    def test_monitoring_drift_endpoint(self):
+        """GET /api/monitoring/drift should return drift metrics."""
+        resp = self.client.get("/api/monitoring/drift")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("overall_status", data)
+        self.assertIn("feature_metrics", data)
+        self.assertIn("prediction_drift", data)
+
+    def test_monitoring_mlflow_endpoint(self):
+        """GET /api/monitoring/mlflow should return tracking registry metadata."""
+        resp = self.client.get("/api/monitoring/mlflow")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("tracking_uri", data)
+        self.assertIn("experiment_name", data)
+        self.assertEqual(data["experiment_name"], "marketmind")
+
+    @patch("src.models.trainer.run_training")
+    @patch("src.models.monitoring.DriftMonitor")
+    def test_monitoring_retrain_endpoint(self, mock_drift_cls, mock_run_train):
+        """POST /api/monitoring/retrain should trigger walk-forward retraining."""
+        mock_run_train.return_value = (None, [], {"accuracy": 0.85})
+        mock_inst = mock_drift_cls.return_value
+        mock_inst.run_drift_analysis.return_value = {"overall_status": "HEALTHY"}
+
+        resp = self.client.post("/api/monitoring/retrain", json={"train_years": [2023, 2024]})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["status"], "success")
+        self.assertIn("drift_report", data)
+        self.assertIn("metrics", data)
 
 
 if __name__ == "__main__":
