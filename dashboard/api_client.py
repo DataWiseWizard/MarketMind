@@ -202,15 +202,15 @@ def generate_smart_fallback_response(question: str, call_id: int) -> dict[str, A
 class MarketMindClient:
     """Robust API client for MarketMind backend with automatic fallback."""
 
-    def __init__(self, base_url: str = DEFAULT_API_URL, timeout: float = 12.0):
+    def __init__(self, base_url: str = DEFAULT_API_URL, timeout: float = 60.0):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._is_live: bool = False
 
-    def check_health(self) -> bool:
+    def check_health(self, timeout: float = 6.0) -> bool:
         """Check if FastAPI backend is reachable and healthy."""
         try:
-            resp = requests.get(f"{self.base_url}/health", timeout=4.0)
+            resp = requests.get(f"{self.base_url}/health", timeout=timeout)
             if resp.status_code == 200:
                 self._is_live = True
                 return True
@@ -259,7 +259,7 @@ class MarketMindClient:
     def get_signal(self, call_id: int) -> dict[str, Any]:
         """Fetch LightGBM prediction and SHAP explainability for a call."""
         try:
-            resp = requests.get(f"{self.base_url}/api/signals/{call_id}", timeout=20.0)
+            resp = requests.get(f"{self.base_url}/api/signals/{call_id}", timeout=self.timeout)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
@@ -298,7 +298,7 @@ class MarketMindClient:
     def get_audit(self, call_id: int) -> dict[str, Any]:
         """Fetch forensic audit findings and discrepancy alerts."""
         try:
-            resp = requests.get(f"{self.base_url}/api/agent/audit/{call_id}", timeout=20.0)
+            resp = requests.get(f"{self.base_url}/api/agent/audit/{call_id}", timeout=self.timeout)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
@@ -325,7 +325,7 @@ class MarketMindClient:
         """Submit question to AI Forensic Agent with generous timeout for RAG + LLM."""
         try:
             payload = {"question": question, "use_rag": use_rag}
-            resp = requests.post(f"{self.base_url}/api/agent/chat/{call_id}", json=payload, timeout=25.0)
+            resp = requests.post(f"{self.base_url}/api/agent/chat/{call_id}", json=payload, timeout=self.timeout)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()

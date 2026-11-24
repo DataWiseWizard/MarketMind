@@ -72,11 +72,11 @@ def main():
         if client.is_live:
             st.markdown(badge_html(f"🟢 API: LIVE ({client.base_url})", "bull"), unsafe_allow_html=True)
         else:
-            st.markdown(badge_html(f"🟡 MODE: DEMO FALLBACK", "warn"), unsafe_allow_html=True)
+            st.markdown(badge_html("🟡 MODE: DEMO FALLBACK", "warn"), unsafe_allow_html=True)
 
         if st.button("🔄 Reconnect Backend", key="btn_reconnect_sidebar", help="Click to test live FastAPI server connection"):
-            with st.spinner("Pinging backend API..."):
-                if client.check_health():
+            with st.spinner("Pinging / waking backend API (may take ~30–45s if Render is waking up)..."):
+                if client.check_health(timeout=45.0):
                     st.success(f"Connected to live FastAPI backend at {client.base_url}!")
                 else:
                     st.warning(
