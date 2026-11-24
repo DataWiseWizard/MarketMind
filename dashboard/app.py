@@ -70,15 +70,20 @@ def main():
 
         # API Connection Health Badge & Refresh Button
         if client.is_live:
-            st.markdown(badge_html("🟢 API: LIVE (HTTP://LOCALHOST:8000)", "bull"), unsafe_allow_html=True)
+            st.markdown(badge_html(f"🟢 API: LIVE ({client.base_url})", "bull"), unsafe_allow_html=True)
         else:
-            st.markdown(badge_html("🟡 MODE: LOCAL DEMO FALLBACK", "warn"), unsafe_allow_html=True)
+            st.markdown(badge_html(f"🟡 MODE: DEMO FALLBACK", "warn"), unsafe_allow_html=True)
 
         if st.button("🔄 Reconnect Backend", key="btn_reconnect_sidebar", use_container_width=True, help="Click to test live FastAPI server connection"):
-            if client.check_health():
-                st.success("Connected to live FastAPI backend!")
-            else:
-                st.warning("Backend not reachable at http://localhost:8000. Start it with: uvicorn src.api.main:app")
+            with st.spinner("Pinging backend API..."):
+                if client.check_health():
+                    st.success(f"Connected to live FastAPI backend at {client.base_url}!")
+                else:
+                    st.warning(
+                        f"Backend not reachable at {client.base_url}.\n\n"
+                        "Note: Free tier services on Render spin down after 15 minutes of inactivity. "
+                        "Cold starts take ~30–50s to wake up. Click Reconnect again in a few moments!"
+                    )
             st.rerun()
 
         st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)

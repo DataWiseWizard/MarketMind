@@ -2,6 +2,9 @@
 # MarketMind - Core & Production Dependencies
 # ===========================================
 
+# CPU-only PyTorch wheel preference for fast, lightweight Linux cloud builds
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # ---- Core ----
 python-dotenv>=1.0.0
 pydantic>=2.7.0
