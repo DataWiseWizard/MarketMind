@@ -32,6 +32,16 @@ from dashboard.components.mlops_monitor import render_mlops_monitor
 
 SEMICONDUCTOR_TICKERS = ["NVDA", "AMD", "INTC", "TSM", "ASML", "MRVL", "QCOM"]
 
+@st.cache_data(ttl=300, show_spinner=False)
+def load_call_bundle(call_id: int):
+    c = get_client()
+    return (
+        c.get_signal(call_id),
+        c.get_evasion(call_id),
+        c.get_tone(call_id),
+        c.get_audit(call_id),
+        c.get_metrics(call_id),
+    )
 
 def main():
     # 1. Page Configuration
@@ -160,12 +170,8 @@ def main():
     # =========================================================================
 
     # Fetch Data for selected call
-    signal_data = client.get_signal(selected_call_id)
-    evasion_data = client.get_evasion(selected_call_id)
-    tone_data = client.get_tone(selected_call_id)
-    audit_data = client.get_audit(selected_call_id)
-    metrics_data = client.get_metrics(selected_call_id)
-
+    signal_data, evasion_data, tone_data, audit_data, metrics_data = load_call_bundle(selected_call_id)
+    
     # Main Header
     st.markdown(
         f"""
