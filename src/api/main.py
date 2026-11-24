@@ -25,7 +25,7 @@ from src.config import API_HOST, API_PORT, DEBUG, DISCLAIMER, RAW_DATA_DIR
 from src.db.connection import get_session, init_database
 from src.db.models import (
     Company, EarningsCall, TranscriptSegment, ExtractedMetric,
-    SentimentScore, EvasionScore, Signal
+    SentimentScore, EvasionScore, Signal, CallStatus, PredictedDirection
 )
 from src.pipeline import MarketMindPipeline
 from src.reporting.report_generator import ReportGenerator
@@ -49,6 +49,35 @@ async def lifespan(app: FastAPI):
             session.add_all(seed_companies)
             session.commit()
             logger.info("Auto-seeded 7 semiconductor companies into database.")
+
+        if session.query(EarningsCall).count() == 0:
+            nvda = session.query(Company).filter_by(ticker="NVDA").first()
+            if nvda:
+                from datetime import date
+                call1 = EarningsCall(
+                    call_id=1,
+                    company_id=nvda.company_id,
+                    quarter="Q4",
+                    fiscal_year=2026,
+                    call_date=date(2026, 2, 25),
+                    status=CallStatus.COMPLETED,
+                    source="seed",
+                )
+                session.add(call1)
+                session.commit()
+
+                sig1 = Signal(
+                    call_id=1,
+                    predicted_direction=PredictedDirection.POSITIVE,
+                    probability=0.78,
+                    expected_return=1.88,
+                    confidence=0.78,
+                    model_version="lightgbm_marketmind_v1",
+                    top_features={"volatility_30d": 0.421, "momentum_30d": 0.345, "revenue_qoq_pct": 0.289},
+                )
+                session.add(sig1)
+                session.commit()
+                logger.info("Auto-seeded demo call #1 and signal into database.")
     except Exception as e:
         logger.warning(f"Company seeding skipped: {e}")
         session.rollback()
