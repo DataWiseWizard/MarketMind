@@ -53,7 +53,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-pipeline_runner = MarketMindPipeline()
+_pipeline_runner: Optional[MarketMindPipeline] = None
+
+def get_pipeline() -> MarketMindPipeline:
+    global _pipeline_runner
+    if _pipeline_runner is None:
+        _pipeline_runner = MarketMindPipeline()
+    return _pipeline_runner
+
 report_gen = ReportGenerator()
 
 
@@ -329,7 +336,7 @@ async def upload_transcript(file: UploadFile = File(...)):
     file_path.write_bytes(content)
 
     logger.info(f"Received upload: {file.filename}, processing...")
-    result = pipeline_runner.process_pdf(file_path)
+    result = get_pipeline().process_pdf(file_path)
     return {
         "status": "success",
         "message": f"Processed {file.filename}",

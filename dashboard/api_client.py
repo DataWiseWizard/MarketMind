@@ -22,7 +22,13 @@ from dashboard.utils.mock_data import (
     get_mock_drift_data,
 )
 
+# Detect API URL from Streamlit secrets (Cloud) or environment variable (Local)
 DEFAULT_API_URL = os.getenv("MARKETMIND_API_URL", "http://localhost:8000")
+try:
+    if hasattr(st, "secrets") and "MARKETMIND_API_URL" in st.secrets:
+        DEFAULT_API_URL = st.secrets["MARKETMIND_API_URL"]
+except Exception:
+    pass
 
 
 def generate_smart_fallback_response(question: str, call_id: int) -> dict[str, Any]:
@@ -195,7 +201,7 @@ def generate_smart_fallback_response(question: str, call_id: int) -> dict[str, A
 class MarketMindClient:
     """Robust API client for MarketMind backend with automatic fallback."""
 
-    def __init__(self, base_url: str = DEFAULT_API_URL, timeout: float = 3.5):
+    def __init__(self, base_url: str = DEFAULT_API_URL, timeout: float = 12.0):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._is_live: bool = False
@@ -203,7 +209,7 @@ class MarketMindClient:
     def check_health(self) -> bool:
         """Check if FastAPI backend is reachable and healthy."""
         try:
-            resp = requests.get(f"{self.base_url}/health", timeout=1.0)
+            resp = requests.get(f"{self.base_url}/health", timeout=4.0)
             if resp.status_code == 200:
                 self._is_live = True
                 return True

@@ -1,3 +1,13 @@
+---
+title: MarketMind Financial Intelligence API
+emoji: 🧠
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🧠 MarketMind
 
 **Automated Financial Earnings Call Analysis and Market Signal Generation Pipeline**
@@ -97,6 +107,38 @@ MarketMind/
 ├── .env.example                # Environment variable template
 └── README.md                   # This file
 ```
+
+---
+
+## ☁️ Cloud Deployment Architecture ($0 Free Tier)
+
+MarketMind is configured for zero-cost, enterprise-grade cloud deployment:
+
+```
+┌─────────────────────────────────┐        REST JSON        ┌────────────────────────────────────┐
+│   Streamlit Community Cloud     │ ──────────────────────> │         Hugging Face Spaces        │
+│   (Frontend Terminal UI)        │ <────────────────────── │         (FastAPI Docker API)       │
+│   • Entry: dashboard/app.py     │        HTTP / TLS       │   • Port: 7860                     │
+│   • Free Hosting (1 GB RAM)     │                         │   • 16 GB RAM / 2 vCPU Free Tier   │
+└─────────────────────────────────┘                         └────────────────────────────────────┘
+```
+
+### 1. Backend: Hugging Face Spaces (FastAPI Docker)
+1. Create a new Space on [Hugging Face Spaces](https://huggingface.co/spaces).
+2. Set Space SDK to **Docker** (Blank).
+3. Connect or push this repository.
+4. Add Repository Secret: `GEMINI_API_KEY`.
+5. Hugging Face builds `Dockerfile` and serves on `https://<hf-user>-<space-name>.hf.space`.
+
+### 2. Frontend: Streamlit Community Cloud
+1. Deploy on [share.streamlit.io](https://share.streamlit.io) from your GitHub repo.
+2. Set **Main file path** to `dashboard/app.py`.
+3. Under **Advanced settings -> Secrets**, set:
+   ```toml
+   MARKETMIND_API_URL = "https://<hf-user>-<space-name>.hf.space"
+   GEMINI_API_KEY = "your_key"
+   ```
+4. Streamlit installs `dashboard/requirements.txt` instantly and links to your live backend.
 
 ---
 
