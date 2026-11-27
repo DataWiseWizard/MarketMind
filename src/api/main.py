@@ -5,6 +5,7 @@ Provides endpoints to query companies, earnings calls, financial metrics,
 sentiment scores, evasion analysis, research signals, and trigger analysis runs.
 """
 
+import os
 import sys
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -63,9 +64,10 @@ app = FastAPI(
 )
 
 # Enable CORS for frontend integration
+ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:8501,http://localhost:8502").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -386,11 +388,20 @@ async def upload_transcript(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF transcripts are supported.")
 
+    # Sanitize filename to prevent path traversal attacks
+    from pathlib import PurePosixPath
+    safe_name = Path(PurePosixPath(file.filename).name).name  # strip directory components
+    if not safe_name or safe_name.startswith("."):
+        raise HTTPException(status_code=400, detail="Invalid filename.")
+
     save_dir = RAW_DATA_DIR / "transcripts" / "uploaded"
     save_dir.mkdir(parents=True, exist_ok=True)
-    file_path = save_dir / file.filename
+    file_path = save_dir / safe_name
 
     content = await file.read()
+    MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
+    if len(content) > MAX_UPLOAD_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 50 MB.")
     file_path.write_bytes(content)
 
     logger.info(f"Received upload: {file.filename}, processing...")
@@ -434,7 +445,7 @@ def agent_chat(call_id: int, body: ChatRequest):
         return result
     except Exception as e:
         logger.error(f"Agent chat error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error during agent chat.")
 
 
 @app.get("/api/agent/audit/{call_id}", tags=["AI Agent"])
@@ -545,7 +556,8 @@ def search_vectorstore(q: str, ticker: Optional[str] = None, n: int = 5):
         results = query_similar(q, n=n, ticker=ticker)
         return {"query": q, "results": results}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Vector store search error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during vector search.")
 
 
 @app.get("/api/predictions", tags=["Predictions"])
@@ -578,7 +590,8 @@ def list_predictions():
                                 "label", "predicted_label", "confidence"]].to_dict(orient="records"),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during prediction.")
     finally:
         session.close()
 
@@ -604,7 +617,8 @@ def get_drift_report():
         monitor.save_reports(report)
         return report
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate drift report: {e}")
+        logger.error(f"Drift report generation failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error generating drift report.")
 
 
 @app.post("/api/monitoring/drift/recalculate", tags=["Monitoring"])
@@ -618,7 +632,8 @@ def recalculate_drift():
         monitor.log_to_mlflow(report)
         return report
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Recalculation failed: {e}")
+        logger.error(f"Drift recalculation failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during drift recalculation.")
 
 
 class RetrainRequest(BaseModel):
@@ -664,7 +679,7 @@ def trigger_retraining(req: Optional[RetrainRequest] = None):
         }
     except Exception as e:
         logger.error(f"Retraining failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Retraining failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during model retraining.")
 
 
 @app.get("/api/monitoring/mlflow", tags=["Monitoring"])

@@ -1,7 +1,7 @@
 # ==============================================================================
 # MarketMind - Production Dockerfile (Render / Cloud / Local)
 # ==============================================================================
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Prevent Python from writing .pyc files and buffer stdout/stderr
 ENV PYTHONUNBUFFERED=1 \

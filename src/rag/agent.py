@@ -28,7 +28,7 @@ import sys
 import json
 from pathlib import Path
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from loguru import logger
 
@@ -484,7 +484,7 @@ class MarketMindAgent:
                             for f in db_findings
                         ],
                         "recommendation": "Maintain constructive signal on explosive Data Center revenue growth, but hedge margin expectations for Q1-Q2 packaging yield ramp.",
-                        "generated_at": datetime.utcnow().isoformat(),
+                        "generated_at": datetime.now(timezone.utc).isoformat(),
                     }
             finally:
                 session.close()
@@ -523,7 +523,7 @@ class MarketMindAgent:
         audit_result["call_id"]   = call_id
         audit_result["ticker"]    = ctx["ticker"]
         audit_result["quarter"]   = f"{ctx['quarter']} FY{ctx['fiscal_year']}"
-        audit_result["generated_at"] = datetime.utcnow().isoformat()
+        audit_result["generated_at"] = datetime.now(timezone.utc).isoformat()
 
         # Persist to DB
         self._save_audit_to_db(call_id, audit_result)
@@ -559,7 +559,7 @@ class MarketMindAgent:
                         historical_statement = f.get("evidence", f.get("historical_statement", ""))[:500],
                         historical_source    = f.get("citation", f.get("historical_source", "SEC 10-Q"))[:255],
                         explanation          = f.get("description", f.get("explanation", ""))[:1000],
-                        created_at           = datetime.utcnow(),
+                        created_at           = datetime.now(timezone.utc),
                     )
                     session.add(finding)
                 session.commit()

@@ -29,7 +29,7 @@ DATABASE_URL = os.getenv(
 # ---- API ----
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("PORT", os.getenv("API_PORT", 8000)))
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # ---- MLflow ----
 MLFLOW_DB_PATH = PROJECT_ROOT / "mlflow.db"

@@ -196,6 +196,11 @@ class ReportGenerator:
             avg_cfo = sum(cfo_sent) / len(cfo_sent) if cfo_sent else 0.0
             avg_analyst = sum(analyst_sent) / len(analyst_sent) if analyst_sent else 0.0
 
+            # Dynamically resolve CEO/CFO names from transcript segments
+            segments = session.query(TranscriptSegment).filter_by(call_id=call_id).all()
+            ceo_name = next((s.speaker_label for s in segments if s.speaker_role == SpeakerRole.CEO and s.speaker_label), "CEO")
+            cfo_name = next((s.speaker_label for s in segments if s.speaker_role == SpeakerRole.CFO and s.speaker_label), "CFO")
+
             # Evasion summary
             avg_evasion = sum(e.evasion_score for e in evasions) / len(evasions) if evasions else 0.0
             evasive_items = [e for e in evasions if e.is_evasive]
@@ -259,8 +264,8 @@ class ReportGenerator:
 
 | Speaker Role | Average Compound Score | Sentiment Tone |
 |---|---|---|
-| **CEO (Jensen Huang)** | `{avg_ceo:+.3f}` | {"Positive" if avg_ceo > 0.2 else ("Negative" if avg_ceo < -0.1 else "Neutral")} |
-| **CFO (Colette Kress)** | `{avg_cfo:+.3f}` | {"Positive" if avg_cfo > 0.2 else ("Negative" if avg_cfo < -0.1 else "Neutral")} |
+| **CEO ({ceo_name})** | `{avg_ceo:+.3f}` | {"Positive" if avg_ceo > 0.2 else ("Negative" if avg_ceo < -0.1 else "Neutral")} |
+| **CFO ({cfo_name})** | `{avg_cfo:+.3f}` | {"Positive" if avg_cfo > 0.2 else ("Negative" if avg_cfo < -0.1 else "Neutral")} |
 | **Wall Street Analysts** | `{avg_analyst:+.3f}` | {"Constructive" if avg_analyst > 0.2 else ("Cautious / Skeptical" if avg_analyst < 0.1 else "Neutral")} |
 | **Call Overall** | `{avg_overall:+.3f}` | {"Bullish" if avg_overall > 0.15 else "Moderate"} |
 

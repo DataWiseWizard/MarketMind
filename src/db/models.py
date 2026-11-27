@@ -6,7 +6,7 @@ Tables: companies, earnings_calls, transcript_segments, extracted_metrics,
         sentiment_scores, evasion_scores, accountability_findings, signals, model_runs
 """
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, Text, Boolean,
     DateTime, Date, ForeignKey, JSON, Numeric, Enum as SQLEnum
@@ -78,8 +78,8 @@ class Company(Base):
     company_name = Column(String(255), nullable=False)
     sector = Column(String(100))
     exchange = Column(String(50))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_calls = relationship("EarningsCall", back_populates="company")
@@ -102,8 +102,8 @@ class EarningsCall(Base):
     transcript_path = Column(String(500))
     status = Column(SQLEnum(CallStatus), default=CallStatus.PENDING)
     source = Column(String(100))  # e.g., "uploaded", "sec_edgar", "seeking_alpha"
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     company = relationship("Company", back_populates="earnings_calls")
@@ -136,7 +136,7 @@ class TranscriptSegment(Base):
     speaker_role = Column(SQLEnum(SpeakerRole), default=SpeakerRole.UNKNOWN)
     segment_type = Column(SQLEnum(SegmentType), default=SegmentType.OTHER)
     text = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_call = relationship("EarningsCall", back_populates="segments")
@@ -161,7 +161,7 @@ class ExtractedMetric(Base):
     speaker_role = Column(SQLEnum(SpeakerRole))
     quote = Column(Text)  # original text for verification
     confidence = Column(Float)  # extraction confidence 0-1
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_call = relationship("EarningsCall", back_populates="metrics")
@@ -182,7 +182,7 @@ class SentimentScore(Base):
     neutral_score = Column(Float, nullable=False)
     negative_score = Column(Float, nullable=False)
     compound_score = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_call = relationship("EarningsCall", back_populates="sentiments")
@@ -203,7 +203,7 @@ class EvasionScore(Base):
     evasion_score = Column(Float, nullable=False)  # 0-1
     is_evasive = Column(Boolean, default=False)
     reason = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_call = relationship("EarningsCall", back_populates="evasions")
@@ -226,7 +226,7 @@ class AccountabilityFinding(Base):
     historical_statement = Column(Text)
     historical_source = Column(String(255))  # e.g., "Q1 FY2026 call"
     explanation = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_call = relationship("EarningsCall", back_populates="findings")
@@ -247,7 +247,7 @@ class Signal(Base):
     confidence = Column(Float)  # 0-1
     model_version = Column(String(50))
     top_features = Column(JSON)  # SHAP top drivers
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_call = relationship("EarningsCall", back_populates="signals")
@@ -265,7 +265,7 @@ class ModelRun(Base):
     version = Column(String(50))
     metrics = Column(JSON)  # accuracy, precision, recall, f1, etc.
     parameters = Column(JSON)  # hyperparameters
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<ModelRun(model='{self.model_name}', version='{self.version}')>"
@@ -281,7 +281,7 @@ class DueDiligenceQuestion(Base):
     question_text = Column(Text, nullable=False)
     peer_evidence_quote = Column(Text)
     peer_call_id = Column(Integer, ForeignKey("earnings_calls.call_id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     earnings_call = relationship("EarningsCall", back_populates="due_diligence_questions", foreign_keys=[call_id])
