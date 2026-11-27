@@ -65,8 +65,18 @@ pip install -r requirements.txt
 copy .env.example .env
 # Edit .env with your database credentials
 
-# 6. Test database connection
-python test_db_connection.py
+# 6. Verify database connection & schema
+python scripts/verify_db.py
+
+# 7. Run the end-to-end analysis pipeline
+python src/pipeline.py --all
+
+# 8. Launch the API & Dashboard (in separate terminals)
+uvicorn src.api.main:app --reload
+streamlit run dashboard/app.py
+
+# 9. Run test suite
+pytest -q
 ```
 
 ---
@@ -76,33 +86,32 @@ python test_db_connection.py
 ```
 MarketMind/
 ├── data/
-│   ├── raw/                    # Raw input data
-│   │   ├── audio/              # Earnings call audio files
-│   │   ├── transcripts/        # Earnings call transcripts
-│   │   ├── filings/            # SEC filings
-│   │   └── market_data/        # Stock price data
-│   ├── processed/              # Processed outputs
-│   │   ├── transcripts/        # Cleaned & segmented transcripts
-│   │   ├── features/           # ML feature tables
-│   │   └── embeddings/         # Vector embeddings
+│   ├── raw/                    # Raw input data (transcripts, filings, audio, market data)
+│   ├── processed/              # Cleaned transcripts & ML feature tables
+│   ├── vector_store/           # ChromaDB persistent vector index
 │   └── external/               # Third-party datasets
 ├── src/
-│   ├── ingestion/              # Data ingestion module
-│   ├── processing/             # Transcript processing & cleaning
-│   ├── rag/                    # Historical accountability (RAG)
-│   ├── features/               # Feature engineering
-│   ├── models/                 # ML prediction models
-│   ├── backtesting/            # Strategy backtesting
-│   ├── api/                    # FastAPI backend
-│   ├── reporting/              # Report generation
-│   ├── db/                     # Database models & connection
-│   └── utils/                  # Shared utilities
-├── dashboard/                  # Streamlit dashboard
+│   ├── ingestion/              # Transcript PDF parser & speaker diarization
+│   ├── processing/             # Metric extraction, FinBERT/Lexicon sentiment, evasion detection
+│   ├── rag/                    # ChromaDB vector store, SEC 10-Q loader & Gemini AI agent
+│   ├── features/               # Feature engineering & market returns
+│   ├── models/                 # LightGBM trainer, SHAP explainer & drift monitoring
+│   ├── reporting/              # Signal generation & Markdown reports
+│   ├── api/                    # FastAPI backend (main.py)
+│   ├── db/                     # SQLAlchemy ORM models, connection & seeding
+│   ├── config.py               # Central configuration
+│   └── pipeline.py             # Master pipeline runner
+├── dashboard/                  # Streamlit workstation UI & components
+├── models/                     # Trained LightGBM model, feature schema, drift reports
+├── scripts/                    # Utility scripts (verify_db.py)
 ├── notebooks/                  # Jupyter notebooks for exploration
-├── tests/                      # Unit & integration tests
+├── tests/                      # Unit & integration tests (pytest)
 ├── mlflow/                     # MLflow experiment tracking
-├── reports/                    # Generated reports
-├── docker/                     # Docker configuration
+├── reports/                    # Generated quarter-by-quarter reports
+├── docker/                     # Service-specific Dockerfiles & compose config
+├── Dockerfile                  # Production container image
+├── render.yaml                 # Render Blueprint deployment config
+├── pyproject.toml              # Project metadata & tool config
 ├── requirements.txt            # Python dependencies
 ├── .env.example                # Environment variable template
 └── README.md                   # This file
@@ -127,7 +136,7 @@ MarketMind is configured for zero-cost cloud deployment using **Render** for the
 ### 1. Backend: Render (FastAPI Web Service - 100% Free)
 1. Go to [dashboard.render.com](https://dashboard.render.com/) and click **New** $\rightarrow$ **Blueprint** (or **Web Service**).
 2. Connect your GitHub repository: `DataWiseWizard/MarketMind`.
-3. Render automatically detects [render.yaml](file:///c:/Rudy/MarketMind/render.yaml) or your `Dockerfile`.
+3. Render automatically detects [render.yaml](render.yaml) or your `Dockerfile`.
 4. Enter your environment secret:
    - `GEMINI_API_KEY`: *(From [Google AI Studio](https://aistudio.google.com/))*
 5. Click **Apply**. Render builds the service and generates your live URL:
@@ -151,7 +160,7 @@ MarketMind is configured for zero-cost cloud deployment using **Render** for the
 |----------|-------|
 | Language | Python |
 | Data | pandas, NumPy |
-| Database | PostgreSQL, SQLAlchemy, Alembic |
+| Database | SQLite (default), PostgreSQL, SQLAlchemy, ChromaDB |
 | NLP/ML | Transformers, FinBERT, spaCy, Sentence-Transformers |
 | Prediction | LightGBM, scikit-learn, SHAP |
 | Market Data | yfinance |
@@ -175,7 +184,8 @@ Input → Ingestion → Transcription → Speaker ID → Segmentation
 
 ## 👥 Team
 
-- **DataWiseWizard** - Project Lead
+- **Rudraksha ([DataWiseWizard](https://github.com/DataWiseWizard))** - Core Contributor
+- **Gourab ([gourab007-ai](https://github.com/gourab007-ai))** - Core Contributor
 
 ---
 
