@@ -1,3 +1,15 @@
+[project]
+name = "marketmind"
+version = "1.0.0"
+description = "Automated Financial Earnings Call Analysis and Market Signal Generation Pipeline"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Rudraksha (DataWiseWizard)" },
+    { name = "Gourab (gourab007-ai)", email = "gourabg189@email.com" },
+]
+keywords = ["finance", "nlp", "finbert", "rag", "lightgbm", "fastapi", "streamlit"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py312"

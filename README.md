@@ -12,6 +12,13 @@ pinned: false
 
 **Automated Financial Earnings Call Analysis and Market Signal Generation Pipeline**
 
+[![MarketMind CI](https://github.com/DataWiseWizard/MarketMind/actions/workflows/ci.yml/badge.svg)](https://github.com/DataWiseWizard/MarketMind/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+![LightGBM](https://img.shields.io/badge/LightGBM-ML%20Pipeline-9C27B0)
+![License](https://img.shields.io/badge/License-Academic-lightgrey)
+
 > ⚠️ **Disclaimer:** This project is for educational and research purposes only. It is not financial advice. Do not use for real-money trading.
 
 ---
