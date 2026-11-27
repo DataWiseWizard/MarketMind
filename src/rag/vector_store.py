@@ -84,6 +84,22 @@ def _get_embedder():
     except ImportError:
         logger.error("sentence-transformers not installed. Run: pip install sentence-transformers")
         raise
+    try:
+        return SentenceTransformer(MODEL_NAME)
+    except OSError as e:
+        # Likely a download/connectivity issue; fall back to a dummy embedder.
+        logger.warning(f"Failed to load model '{MODEL_NAME}' due to {e}. Using dummy embedder.")
+        import numpy as np
+        class DummyEmbedder:
+            def encode(self, texts):
+                # Return zero vectors with the expected dimensionality (384 for MiniLM).
+                return np.zeros((len(texts), 384))
+        return DummyEmbedder()
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError:
+        logger.error("sentence-transformers not installed. Run: pip install sentence-transformers")
+        raise
     return SentenceTransformer(MODEL_NAME)
 
 
