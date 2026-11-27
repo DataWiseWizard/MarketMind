@@ -19,9 +19,17 @@ from dashboard.utils.mock_data import (
     get_mock_tone_data,
     get_mock_audit_findings,
     get_mock_metrics_data,
+    get_mock_drift_data,
+    get_mock_retrained_drift_data,
 )
 
+# Detect API URL from Streamlit secrets (Cloud) or environment variable (Local)
 DEFAULT_API_URL = os.getenv("MARKETMIND_API_URL", "http://localhost:8000")
+try:
+    if hasattr(st, "secrets") and "MARKETMIND_API_URL" in st.secrets:
+        DEFAULT_API_URL = st.secrets["MARKETMIND_API_URL"]
+except Exception:
+    pass
 
 
 def generate_smart_fallback_response(question: str, call_id: int) -> dict[str, Any]:
@@ -194,15 +202,15 @@ def generate_smart_fallback_response(question: str, call_id: int) -> dict[str, A
 class MarketMindClient:
     """Robust API client for MarketMind backend with automatic fallback."""
 
-    def __init__(self, base_url: str = DEFAULT_API_URL, timeout: float = 3.5):
+    def __init__(self, base_url: str = DEFAULT_API_URL, timeout: float = 60.0):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._is_live: bool = False
 
-    def check_health(self) -> bool:
+    def check_health(self, timeout: float = 6.0) -> bool:
         """Check if FastAPI backend is reachable and healthy."""
         try:
-            resp = requests.get(f"{self.base_url}/health", timeout=1.0)
+            resp = requests.get(f"{self.base_url}/health", timeout=timeout)
             if resp.status_code == 200:
                 self._is_live = True
                 return True
@@ -212,9 +220,8 @@ class MarketMindClient:
         return False
 
     @property
-    def is_live(self) -> bool:
-        """Dynamically probes health so server startup is immediately recognized."""
-        return self.check_health()
+    def is_live(self) -> bool:  
+        return self._is_live
 
     def get_companies(self) -> list[dict[str, Any]]:
         """Fetch list of tracked semiconductor companies."""
@@ -281,7 +288,7 @@ class MarketMindClient:
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
-                if data and ("roles" in data or "segments" in data):
+                if data and data.get("segments"):
                     return data
         except Exception as e:
             logger.debug(f"API get_tone failed, using fallback: {e}")
@@ -290,11 +297,11 @@ class MarketMindClient:
     def get_audit(self, call_id: int) -> dict[str, Any]:
         """Fetch forensic audit findings and discrepancy alerts."""
         try:
-            resp = requests.get(f"{self.base_url}/api/agent/audit/{call_id}", timeout=25.0)
+            resp = requests.get(f"{self.base_url}/api/agent/audit/{call_id}", timeout=self.timeout)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
-                if data:
+                if data and not data.get("error"):
                     return data
         except Exception as e:
             logger.debug(f"API get_audit failed, using fallback: {e}")
@@ -317,31 +324,150 @@ class MarketMindClient:
         """Submit question to AI Forensic Agent with generous timeout for RAG + LLM."""
         try:
             payload = {"question": question, "use_rag": use_rag}
-            resp = requests.post(f"{self.base_url}/api/agent/chat/{call_id}", json=payload, timeout=60.0)
+            resp = requests.post(f"{self.base_url}/api/agent/chat/{call_id}", json=payload, timeout=self.timeout)
             if resp.status_code == 200:
                 self._is_live = True
                 data = resp.json()
-                # Normalize 'sources' to 'citations' if needed
-                if "sources" in data and not data.get("citations"):
-                    normalized = []
-                    for s in data["sources"]:
-                        meta = s.get("metadata", {})
-                        doc_type = meta.get("doc_type", "TRANSCRIPT").upper()
-                        speaker = meta.get("speaker_role", "Verified Source")
-                        label = f"[{meta.get('ticker', '')} {meta.get('quarter', '')} {doc_type}]"
-                        normalized.append({
-                            "source": doc_type,
-                            "speaker": speaker,
-                            "citation": label,
-                            "text": s.get("text", "")[:300],
-                        })
-                    data["citations"] = normalized
-                return data
+                ans = data.get("answer", "")
+                if ans and "No data found for call_id" not in ans:
+                    # Normalize 'sources' to 'citations' if needed
+                    if "sources" in data and not data.get("citations"):
+                        normalized = []
+                        for s in data["sources"]:
+                            meta = s.get("metadata", {})
+                            doc_type = meta.get("doc_type", "TRANSCRIPT").upper()
+                            speaker = meta.get("speaker_role", "Verified Source")
+                            label = f"[{meta.get('ticker', '')} {meta.get('quarter', '')} {doc_type}]"
+                            normalized.append({
+                                "source": doc_type,
+                                "speaker": speaker,
+                                "citation": label,
+                                "text": s.get("text", "")[:300],
+                            })
+                        data["citations"] = normalized
+                    return data
         except Exception as e:
             logger.warning(f"API chat failed, using smart dynamic responder: {e}")
 
         # Intelligent question-aware fallback response with grounded citations
         return generate_smart_fallback_response(question, call_id)
+
+    def get_drift_report(self) -> dict[str, Any]:
+        """Fetch model & feature drift monitoring report."""
+        try:
+            resp = requests.get(f"{self.base_url}/api/monitoring/drift", timeout=self.timeout)
+            if resp.status_code == 200:
+                self._is_live = True
+                return resp.json()
+        except Exception as e:
+            logger.debug(f"API get_drift_report failed, checking local file or mock: {e}")
+
+        # Direct file fallback if file exists on disk
+        import json
+        from pathlib import Path
+        local_report = Path(__file__).resolve().parent.parent / "models" / "drift_report.json"
+        if local_report.exists():
+            try:
+                with open(local_report) as f:
+                    return json.load(f)
+            except Exception:
+                pass
+
+        return get_mock_drift_data()
+
+    def recalculate_drift(self) -> dict[str, Any]:
+        """Trigger an on-demand drift recalculation via API or local engine."""
+        try:
+            resp = requests.post(f"{self.base_url}/api/monitoring/drift/recalculate", timeout=30.0)
+            if resp.status_code == 200:
+                self._is_live = True
+                return resp.json()
+        except Exception as e:
+            logger.debug(f"API recalculate_drift failed: {e}")
+
+        # Local fallback execution
+        try:
+            from src.models.monitoring import DriftMonitor
+            monitor = DriftMonitor()
+            report = monitor.run_drift_analysis()
+            monitor.save_reports(report)
+            monitor.log_to_mlflow(report)
+            return report
+        except (ImportError, ModuleNotFoundError) as mod_err:
+            logger.info(f"Local DriftMonitor not available in client environment: {mod_err}")
+            return get_mock_drift_data()
+        except Exception as exc:
+            logger.warning(f"Local drift recalculation failed: {exc}")
+            return get_mock_drift_data()
+
+    def retrain_model(self, train_years: list[int] = None) -> dict[str, Any]:
+        """Trigger walk-forward retraining on expanded historical window."""
+        if train_years is None:
+            train_years = [2023, 2024, 2025]
+        try:
+            resp = requests.post(
+                f"{self.base_url}/api/monitoring/retrain",
+                json={"train_years": train_years},
+                timeout=90.0,
+            )
+            if resp.status_code == 200:
+                self._is_live = True
+                return resp.json()
+        except Exception as e:
+            logger.debug(f"API retrain_model failed: {e}")
+
+        # Local fallback execution (only if ML dependencies are installed)
+        try:
+            from src.models.trainer import run_training
+            from src.models.monitoring import DriftMonitor
+
+            cur_years = [2026] if 2025 in train_years else [2025, 2026]
+            val_years = [2025] if 2025 not in train_years else [2024]
+            run_name = f"walk_forward_expanding_{'_'.join(map(str, train_years))}"
+
+            _, _, metrics = run_training(
+                train_years=train_years,
+                val_years=val_years,
+                test_years=cur_years,
+                run_name=run_name,
+            )
+
+            monitor = DriftMonitor()
+            drift_report = monitor.run_drift_analysis(ref_years=train_years, cur_years=cur_years)
+            monitor.save_reports(drift_report)
+            monitor.log_to_mlflow(drift_report)
+
+            return {
+                "status": "success",
+                "message": f"Model successfully retrained on years {train_years}.",
+                "train_years": train_years,
+                "metrics": metrics,
+                "drift_report": drift_report,
+            }
+        except (ImportError, ModuleNotFoundError) as mod_err:
+            logger.info(f"Local ML trainer not installed in client environment: {mod_err}")
+            # Provide high-fidelity simulated retrained drift report for frontend demo mode
+            if 2025 in train_years:
+                simulated_report = get_mock_retrained_drift_data()
+            else:
+                simulated_report = get_mock_drift_data()
+
+            return {
+                "status": "demo_simulated",
+                "message": (
+                    f"Backend at {self.base_url} is not connected. "
+                    f"Simulated walk-forward retraining on {train_years} for dashboard demonstration."
+                ),
+                "train_years": train_years,
+                "drift_report": simulated_report,
+            }
+        except Exception as exc:
+            logger.warning(f"Local retraining failed: {exc}")
+            return {
+                "status": "error",
+                "message": str(exc),
+                "drift_report": get_mock_drift_data(),
+            }
 
 
 @st.cache_resource

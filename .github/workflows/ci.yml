@@ -29,11 +29,16 @@ jobs:
 
       - name: Run Ruff Linter
         run: |
-          ruff check src/ tests/
+          ruff check src/ tests/ dashboard/
 
       - name: Run Pytest Test Suite
         env:
           PYTHONPATH: "."
           DATABASE_URL: "sqlite:///./test_ci.db"
+          MLFLOW_TRACKING_URI: "sqlite:///./test_ci_mlflow.db"
         run: |
           pytest tests/ -v
+
+      - name: Validate Docker Compose Configuration
+        run: |
+          docker compose config -q

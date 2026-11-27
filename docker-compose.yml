@@ -1,0 +1,71 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: marketmind-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=False
+      - DATABASE_URL=sqlite:////app/data/marketmind.db
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_EXPERIMENT_NAME=marketmind
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    volumes:
+      - app-data:/app/data
+      - app-models:/app/models
+      - app-reports:/app/reports
+    networks:
+      - marketmind-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    container_name: marketmind-dashboard
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - MARKETMIND_API_URL=http://api:8000
+      - STREAMLIT_SERVER_HEADLESS=true
+    volumes:
+      - app-models:/app/models:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - marketmind-network
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mlflow
+    container_name: marketmind-mlflow
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    networks:
+      - marketmind-network
+
+volumes:
+  app-data:
+  app-models:
+  app-reports:
+  mlflow-data:
+
+networks:
+  marketmind-network:
+    driver: bridge

@@ -1,0 +1,184 @@
+{
+  "timestamp": "2026-11-24T09:00:20.366080+00:00",
+  "overall_status": "WARNING",
+  "reference_split": "Years [2023, 2024, 2025] (N=70)",
+  "current_split": "Years [2026] (N=17)",
+  "reference_sample_count": 70,
+  "current_sample_count": 17,
+  "total_features_evaluated": 13,
+  "critical_features_count": 1,
+  "warning_features_count": 5,
+  "critical_features": [
+    "sent_ceo"
+  ],
+  "warning_features": [
+    "sent_cfo",
+    "revenue_qoq_pct",
+    "margin_qoq_pp",
+    "momentum_30d",
+    "volatility_30d"
+  ],
+  "feature_metrics": {
+    "sent_ceo": {
+      "psi": 2.0948,
+      "ks_statistic": 0.2714,
+      "ks_pvalue": 0.215,
+      "drift_level": "CRITICAL",
+      "ref_mean": 0.1062,
+      "ref_std": 0.1834,
+      "cur_mean": 0.0171,
+      "cur_std": 0.0382,
+      "delta_mean": -0.0891
+    },
+    "sent_cfo": {
+      "psi": 0.2069,
+      "ks_statistic": 0.1235,
+      "ks_pvalue": 0.9639,
+      "drift_level": "MODERATE",
+      "ref_mean": 0.1673,
+      "ref_std": 0.2808,
+      "cur_mean": 0.1401,
+      "cur_std": 0.2296,
+      "delta_mean": -0.0272
+    },
+    "sent_analyst": {
+      "psi": 0.0706,
+      "ks_statistic": 0.1286,
+      "ks_pvalue": 0.9486,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0297,
+      "ref_std": 0.0745,
+      "cur_mean": 0.0181,
+      "cur_std": 0.0361,
+      "delta_mean": -0.0116
+    },
+    "sent_ceo_delta": {
+      "psi": 0.0365,
+      "ks_statistic": 0.1571,
+      "ks_pvalue": 0.8246,
+      "drift_level": "STABLE",
+      "ref_mean": -0.0042,
+      "ref_std": 0.1095,
+      "cur_mean": -0.0024,
+      "cur_std": 0.0136,
+      "delta_mean": 0.0018
+    },
+    "sent_cfo_delta": {
+      "psi": 0.0132,
+      "ks_statistic": 0.1143,
+      "ks_pvalue": 0.9814,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0145,
+      "ref_std": 0.265,
+      "cur_mean": 0.0059,
+      "cur_std": 0.1253,
+      "delta_mean": -0.0086
+    },
+    "evasion_mean": {
+      "psi": 0.0,
+      "ks_statistic": 0.0748,
+      "ks_pvalue": 1.0,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0194,
+      "ref_std": 0.0482,
+      "cur_mean": 0.0209,
+      "cur_std": 0.0457,
+      "delta_mean": 0.0015
+    },
+    "evasion_max": {
+      "psi": 0.0,
+      "ks_statistic": 0.0462,
+      "ks_pvalue": 1.0,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0343,
+      "ref_std": 0.0995,
+      "cur_mean": 0.0382,
+      "cur_std": 0.09,
+      "delta_mean": 0.0039
+    },
+    "evasive_count": {
+      "psi": 0.0,
+      "ks_statistic": 0.0286,
+      "ks_pvalue": 1.0,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0571,
+      "ref_std": 0.3332,
+      "cur_mean": 0.0,
+      "cur_std": 0.0,
+      "delta_mean": -0.0571
+    },
+    "revenue_qoq_pct": {
+      "psi": 0.1664,
+      "ks_statistic": 0.242,
+      "ks_pvalue": 0.3339,
+      "drift_level": "MODERATE",
+      "ref_mean": 58.4481,
+      "ref_std": 320.5065,
+      "cur_mean": 25.3616,
+      "cur_std": 76.2998,
+      "delta_mean": -33.0865
+    },
+    "margin_qoq_pp": {
+      "psi": 0.1076,
+      "ks_statistic": 0.105,
+      "ks_pvalue": 0.9928,
+      "drift_level": "MODERATE",
+      "ref_mean": -0.0214,
+      "ref_std": 3.1996,
+      "cur_mean": 0.0559,
+      "cur_std": 1.2192,
+      "delta_mean": 0.0773
+    },
+    "discrepancy_count": {
+      "psi": 0.0,
+      "ks_statistic": 0.0,
+      "ks_pvalue": 1.0,
+      "drift_level": "STABLE",
+      "ref_mean": 0.0,
+      "ref_std": 0.0,
+      "cur_mean": 0.0,
+      "cur_std": 0.0,
+      "delta_mean": 0.0
+    },
+    "momentum_30d": {
+      "psi": 0.2127,
+      "ks_statistic": 0.2227,
+      "ks_pvalue": 0.4375,
+      "drift_level": "MODERATE",
+      "ref_mean": 8.6132,
+      "ref_std": 14.4299,
+      "cur_mean": 11.2273,
+      "cur_std": 24.4139,
+      "delta_mean": 2.6141
+    },
+    "volatility_30d": {
+      "psi": 0.2394,
+      "ks_statistic": 0.2706,
+      "ks_pvalue": 0.2191,
+      "drift_level": "MODERATE",
+      "ref_mean": 44.9343,
+      "ref_std": 18.7676,
+      "cur_mean": 50.0697,
+      "cur_std": 16.4282,
+      "delta_mean": 5.1354
+    }
+  },
+  "prediction_drift": {
+    "psi": 0.1595,
+    "drift_level": "MODERATE",
+    "reference_distribution": {
+      "NEGATIVE": 0.3429,
+      "NEUTRAL": 0.4429,
+      "POSITIVE": 0.2143
+    },
+    "current_distribution": {
+      "NEGATIVE": 0.5294,
+      "NEUTRAL": 0.3529,
+      "POSITIVE": 0.1176
+    }
+  },
+  "recommendations": [
+    "Monitor drifted features closely over upcoming earnings cycle. Validate whether shift reflects broader semiconductor market regime transition.",
+    "Volatility shift detected (macro tech market regime change). Consider adjusting classification decision thresholds."
+  ]
+}

@@ -15,6 +15,7 @@ Output:
 """
 
 import json
+import os
 import pickle
 import sys
 import warnings
@@ -35,6 +36,10 @@ MODELS_DIR   = PROJECT_ROOT / "models"
 MODEL_PATH   = MODELS_DIR / "lightgbm_marketmind_v1.pkl"
 FEAT_PATH    = MODELS_DIR / "feature_columns.json"
 METRICS_PATH = MODELS_DIR / "model_metrics.json"
+
+MLFLOW_DB_PATH = PROJECT_ROOT / "mlflow.db"
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", f"sqlite:///{MLFLOW_DB_PATH.as_posix()}")
+MLFLOW_EXPERIMENT_NAME = "marketmind"
 
 LABEL_MAP    = {"POSITIVE": 2, "NEUTRAL": 1, "NEGATIVE": 0}
 LABEL_REMAP  = {v: k for k, v in LABEL_MAP.items()}
@@ -63,15 +68,41 @@ BASE_FEATURES = [
 
 def load_data() -> pd.DataFrame:
     if not MATRIX_PATH.exists():
-        logger.error(f"Feature matrix not found: {MATRIX_PATH}")
-        logger.error("Run feature_builder.py first: python -m src.features.feature_builder")
-        sys.exit(1)
+        # Fallback 1: check if CSV fallback exists
+        csv_path = MATRIX_PATH.with_suffix(".csv")
+        if csv_path.exists():
+            logger.info(f"Loading matrix from CSV fallback: {csv_path}")
+            df = pd.read_csv(csv_path)
+            return df
+
+        # Fallback 2: dynamic feature build
+        logger.error(f"Feature matrix not found at {MATRIX_PATH}. Attempting automated build...")
+        try:
+            from src.features.feature_builder import build_feature_matrix
+            df = build_feature_matrix()
+            if df is not None and not df.empty:
+                return df
+        except Exception as e:
+            logger.warning(f"Automated feature build failed: {e}")
+
+        raise FileNotFoundError(
+            f"Feature matrix not found: {MATRIX_PATH}. "
+            "Please ensure data/processed/features/train_matrix.parquet is committed to repository."
+        )
+
     df = pd.read_parquet(MATRIX_PATH)
     logger.info(f"Loaded matrix: {df.shape}")
     return df
 
 
-def prepare_splits(df: pd.DataFrame):
+def prepare_splits(df: pd.DataFrame, train_years=None, val_years=None, test_years=None):
+    if train_years is None:
+        train_years = TRAIN_YEARS
+    if val_years is None:
+        val_years = VAL_YEARS
+    if test_years is None:
+        test_years = TEST_YEARS
+
     df = df.copy()
     df["year"] = pd.to_datetime(df["call_date"]).dt.year
 
@@ -94,9 +125,9 @@ def prepare_splits(df: pd.DataFrame):
     y = df["target"].values.astype(np.int32)
     years = df["year"].values
 
-    train_mask = np.isin(years, TRAIN_YEARS)
-    val_mask   = np.isin(years, VAL_YEARS)
-    test_mask  = np.isin(years, TEST_YEARS)
+    train_mask = np.isin(years, train_years)
+    val_mask   = np.isin(years, val_years)
+    test_mask  = np.isin(years, test_years)
 
     logger.info(f"Train: {train_mask.sum()}  Val: {val_mask.sum()}  Test: {test_mask.sum()}")
 
@@ -134,7 +165,7 @@ def train_model(X, y, train_mask, val_mask, feature_names):
     model = lgb.LGBMClassifier(**params)
     model.fit(X_train, y_train)
     logger.success(f"Model trained — trees: {model.n_estimators}, max_depth: {model.max_depth}")
-    return model
+    return model, params
 
 
 def evaluate(model, X, y, mask, split_name: str) -> dict:
@@ -164,18 +195,32 @@ def evaluate(model, X, y, mask, split_name: str) -> dict:
     return {"accuracy": round(acc, 4), "f1_macro": round(f1, 4), "confusion_matrix": cm}
 
 
-def run_training():
+def run_training(train_years=None, val_years=None, test_years=None, run_name=None):
+    if train_years is None:
+        train_years = TRAIN_YEARS
+    if val_years is None:
+        val_years = VAL_YEARS
+    if test_years is None:
+        test_years = TEST_YEARS
+    if run_name is None:
+        run_name = "lightgbm_walk_forward_v1"
+
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     df       = load_data()
-    X, y, train_mask, val_mask, test_mask, features, df_full = prepare_splits(df)
+    X, y, train_mask, val_mask, test_mask, features, df_full = prepare_splits(
+        df, train_years=train_years, val_years=val_years, test_years=test_years
+    )
 
-    model = train_model(X, y, train_mask, val_mask, features)
+    model, params = train_model(X, y, train_mask, val_mask, features)
 
     metrics = {}
-    metrics["train"] = evaluate(model, X, y, train_mask, "TRAIN (2023-2024)")
-    metrics["val"]   = evaluate(model, X, y, val_mask,   "VAL   (2025)")
-    metrics["test"]  = evaluate(model, X, y, test_mask,  "TEST  (2026)")
+    metrics["train_years"] = train_years
+    metrics["val_years"] = val_years
+    metrics["test_years"] = test_years
+    metrics["train"] = evaluate(model, X, y, train_mask, f"TRAIN ({train_years})")
+    metrics["val"]   = evaluate(model, X, y, val_mask,   f"VAL   ({val_years})")
+    metrics["test"]  = evaluate(model, X, y, test_mask,  f"TEST  ({test_years})")
 
     # Feature importance
     imp = dict(zip(features, model.feature_importances_.tolist()))
@@ -195,6 +240,70 @@ def run_training():
 
     logger.success(f"Model saved → {MODEL_PATH}")
     logger.success(f"Metrics saved → {METRICS_PATH}")
+
+    # MLflow Tracking
+    try:
+        import mlflow
+        import mlflow.lightgbm
+
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+
+        with mlflow.start_run(run_name=run_name) as run:
+            mlflow.set_tags({
+                "model_type": "LightGBM",
+                "framework": "lightgbm",
+                "stage": "Stage 4",
+                "task": "market_direction_prediction",
+                "retrained": "true" if len(train_years) > 2 else "false",
+            })
+
+            # Log hyperparameters & configuration
+            mlflow.log_params(params)
+            mlflow.log_param("num_features", len(features))
+            mlflow.log_param("features_list", ",".join(features))
+            mlflow.log_param("train_years", str(train_years))
+            mlflow.log_param("val_years", str(val_years))
+            mlflow.log_param("test_years", str(test_years))
+
+            # Log dataset split counts
+            mlflow.log_metric("train_samples", int(train_mask.sum()))
+            mlflow.log_metric("val_samples", int(val_mask.sum()))
+            mlflow.log_metric("test_samples", int(test_mask.sum()))
+
+            # Log evaluation metrics across splits
+            for split_key in ["train", "val", "test"]:
+                m = metrics.get(split_key, {})
+                if m:
+                    mlflow.log_metric(f"{split_key}_accuracy", float(m.get("accuracy", 0.0)))
+                    mlflow.log_metric(f"{split_key}_f1_macro", float(m.get("f1_macro", 0.0)))
+
+            # Log feature importances
+            for feat_name, feat_val in imp_sorted.items():
+                mlflow.log_metric(f"feat_imp_{feat_name}", float(feat_val))
+
+            # Log model and JSON artifacts
+            if FEAT_PATH.exists():
+                mlflow.log_artifact(str(FEAT_PATH), artifact_path="metadata")
+            if METRICS_PATH.exists():
+                mlflow.log_artifact(str(METRICS_PATH), artifact_path="metadata")
+            if MODEL_PATH.exists():
+                mlflow.log_artifact(str(MODEL_PATH), artifact_path="model_pickle")
+
+            # In memory-constrained cloud environments (e.g. Render 512 MB), log the lightweight
+            # pickled model directly to prevent heavy conda environment packaging from consuming RAM
+            if not (os.getenv("RENDER") or os.getenv("SPACE_ID")):
+                try:
+                    mlflow.lightgbm.log_model(model, name="lightgbm_model")
+                except Exception as model_err:
+                    logger.warning(f"mlflow.lightgbm.log_model skipped ({model_err}).")
+            else:
+                logger.debug("Cloud container environment detected: logging lightweight model artifact.")
+
+            logger.success(f"MLflow Run logged successfully (Run ID: {run.info.run_id})")
+    except Exception as exc:
+        logger.warning(f"MLflow experiment logging skipped or failed: {exc}")
+
     return model, features, metrics
 
 
